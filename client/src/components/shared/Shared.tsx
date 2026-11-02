@@ -33,16 +33,17 @@ export function GuestNav() {
   return (
     <nav className="guest-nav">
       <Brand />
+
       <div className="nav-links">
         <NavLink to="/">Home</NavLink>
         <NavLink to="/branches">Our Branches</NavLink>
         <NavLink to="/bookings">My Bookings</NavLink>
         <NavLink to="/favourites">Favourites</NavLink>
         <NavLink to="/notifications">Notifications</NavLink>
+
         <NavLink to={user ? '/profile' : '/login'}>
           {user ? 'Profile' : 'Sign In'}
         </NavLink>
-        {user?.role === 'admin' && <NavLink to="/admin">Admin</NavLink>}
       </div>
     </nav>
   );
