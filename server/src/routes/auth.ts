@@ -16,6 +16,7 @@ import type { User } from '../models/types.js';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { createHash, randomBytes } from 'node:crypto';
+import { sendPasswordResetEmail } from '../services/email.js';
 
 import {
   CLIENT_URL,
@@ -359,5 +360,138 @@ router.post('/google/exchange', asyncHandler(async (req, res) => {
     token: token(user)
   });
 }));
+
+
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email()
+});
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', asyncHandler(async (req, res) => {
+  const { email } = forgotPasswordSchema.parse(req.body);
+
+  const message =
+    'If an account exists with this email, a password reset link will be sent.';
+
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() }
+  });
+
+  // Avoid revealing whether an email is registered.
+  if (!user) {
+    res.json({ message });
+    return;
+  }
+
+  // Generate a secure reset token.
+  const resetToken = randomBytes(32).toString('hex');
+
+  // Store only the token hash in PostgreSQL.
+  const tokenHash = createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  // Invalidate any previous reset tokens.
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id }
+  });
+
+  await prisma.passwordResetToken.create({
+    data: {
+      userId: user.id,
+      tokenHash,
+      expiresAt
+    }
+  });
+
+  // Build the reset link for the React frontend.
+  const resetUrl = new URL('/reset-password', CLIENT_URL);
+  resetUrl.searchParams.set('token', resetToken);
+
+  try {
+    await sendPasswordResetEmail(
+      user.email,
+      resetUrl.toString()
+    );
+  } catch (error) {
+    console.error('Failed to send password reset email:', error);
+  }
+
+  res.json({ message });
+}));
+
+
+const resetPasswordSchema = z.object({
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+  password: z.string().min(8)
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', asyncHandler(async (req, res) => {
+  const { token: resetToken, password } =
+    resetPasswordSchema.parse(req.body);
+
+  const tokenHash = createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  const resetRecord = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash }
+  });
+
+  if (!resetRecord || resetRecord.expiresAt <= new Date()) {
+    res.status(400).json({
+      error: 'Invalid or expired password reset link.'
+    });
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Consume the token once, even if requests arrive concurrently.
+      const consumed = await tx.passwordResetToken.deleteMany({
+        where: {
+          id: resetRecord.id,
+          expiresAt: { gt: new Date() }
+        }
+      });
+
+      if (consumed.count !== 1) {
+        throw new Error('RESET_TOKEN_INVALID');
+      }
+
+      await tx.user.update({
+        where: { id: resetRecord.userId },
+        data: { passwordHash }
+      });
+
+      await tx.passwordResetToken.deleteMany({
+        where: { userId: resetRecord.userId }
+      });
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === 'RESET_TOKEN_INVALID'
+    ) {
+      res.status(400).json({
+        error: 'Invalid or expired password reset link.'
+      });
+      return;
+    }
+
+    throw error;
+  }
+
+  res.json({
+    message: 'Password reset successfully.'
+  });
+}));
+
+
 
 export default router;

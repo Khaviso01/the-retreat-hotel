@@ -117,7 +117,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             <p>{dialog.message}</p>
             <div className="actions">
               <button className="btn outline" onClick={() => setDialog(null)}>
-                Keep / Go Back
+                Cancel
               </button>
               <button
                 className="btn danger"

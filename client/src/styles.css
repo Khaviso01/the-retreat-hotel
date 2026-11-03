@@ -1,21 +1,125 @@
 /* The Retreat design system: dark forest green, cream backgrounds and clean cards. */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
 
+
 :root {
-  font-family: 'DM Sans', Arial, sans-serif;
-  color: #173e36;
-  background: #f8faf8;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  /* Fonts */
+  --font-primary: 'DM Sans', Arial, sans-serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+
+  /* Main colours */
   --green: #003e36;
   --teal: #07584d;
   --cream: #f8faf8;
   --muted: #72817d;
   --border: #e4eae6;
   --red: #d93f43;
+
+  /* Additional colours */
+  --color-white: #ffffff;
+  --color-text: #173e36;
+  --color-text-dark: #243f39;
+  --color-text-secondary: #52645e;
+  --color-nav-text: #4b5c57;
+  --color-green-hover: #086256;
+  --color-green-light: #eaf2ed;
+  --color-surface-hover: #f5f8f7;
+  --color-footer-bg: #edf2ef;
+  --color-footer-text: #677b73;
+  --color-admin-bg: #f6f8f7;
+  --color-admin-hover: #0b6355;
+  --color-admin-link: #d6e7e0;
+  --color-input-border: #dce4df;
+
+  /* Status colours */
+  --color-success: #137247;
+  --color-success-bg: #e1f4e7;
+  --color-warning: #a66c00;
+  --color-warning-bg: #fff1d4;
+  --color-danger: #c12f35;
+  --color-danger-bg: #fde7e7;
+  --color-info: #2858a0;
+  --color-info-bg: #dbeafc;
+  --color-star: #e89e21;
+
+  /* Font sizes */
+  --text-2xs: 8px;
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-md: 12px;
+  --text-base: 13px;
+  --text-body: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 28px;
+  --text-5xl: 30px;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Border radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-3xl: 16px;
+  --radius-4xl: 18px;
+  --radius-5xl: 20px;
+  --radius-full: 50%;
+  --radius-pill: 999px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 15px;
+  --space-6: 18px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 28px;
+  --space-10: 30px;
+  --space-11: 35px;
+  --space-12: 40px;
+  --space-13: 45px;
+  --space-14: 60px;
+
+  /* Shadows */
   --shadow: 0 10px 30px rgba(0, 50, 40, 0.08);
+  --shadow-card: 0 3px 14px rgba(0, 0, 0, 0.025);
+  --shadow-panel: 0 2px 10px rgba(0, 0, 0, 0.02);
+  --shadow-nav: 0 2px 15px rgba(0, 0, 0, 0.035);
+
+  /* Borders */
+  --border-width: 1px;
+  --border-default: var(--border-width) solid var(--border);
+  --border-input: var(--border-width) solid var(--color-input-border);
+
+  /* Layout */
+  --container-width: 1180px;
+  --sidebar-width: 242px;
+  --nav-height: 82px;
+  --input-height: 46px;
+
+  /* Animation */
+  --transition-fast: 0.2s ease;
+
+  /* Global defaults */
+  font-family: var(--font-primary);
+  color: var(--color-text);
+  background: var(--cream);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
+
 
 * {
   box-sizing: border-box;
@@ -115,6 +219,34 @@ p {
   cursor: pointer;
 }
 
+.forgot-password-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.forgot-password {
+  font-size: var(--text-base);
+  color: var(--teal);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 12px);
+}
+
+.auth-card form .btn {
+  margin-top: var(--space-4, 12px);
+}
+
 .google-btn:hover {
   background: #f5f8f7;
 }
@@ -206,10 +338,14 @@ p {
 .brand {
   display: inline-flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
   line-height: 1;
-  text-align: center;
   white-space: nowrap;
 }
+
+
 
 .brand span {
   font: 600 28px 'Playfair Display', Georgia, serif;
@@ -231,8 +367,21 @@ p {
   justify-content: space-between;
   padding: 0 max(24px, calc((100vw - 1180px) / 2));
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.035);
-  position: relative;
+  position: fixed;
+  left: 0;
+  width: 100%;
   z-index: 3;
+  top: 0;
+}
+
+@media (max-width: 768px) {
+  .guest-nav {
+    justify-content: flex-start;
+  }
+
+  .guest-nav > .brand {
+    margin-right: auto;
+  }
 }
 
 .nav-links {
@@ -242,8 +391,8 @@ p {
 }
 
 .nav-links a {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   color: #4b5c57;
 }
 
@@ -848,6 +997,7 @@ p {
   width: 75px;
   height: 75px;
   background: #e0efe8;
+  margin-bottom: 20px;
   border-radius: 50%;
   display: grid;
   place-items: center;

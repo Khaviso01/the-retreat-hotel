@@ -862,17 +862,27 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
-          <label>
-            Password
-            <input
-              type="password"
-              required
-              minLength={signup ? 8 : undefined}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          {error && <p className="error">{error}</p>}
+         <label>
+  Password
+  <input
+    type="password"
+    required
+    minLength={signup ? 8 : undefined}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+  />
+</label>
+
+{/* Only show Forgot Password on Login, not Sign Up */}
+{!signup && (
+  <div className="forgot-password-wrapper">
+    <Link to="/forgot-password" className="forgot-password">
+      Forgot Password?
+    </Link>
+  </div>
+)}
+
+{error && <p className="error">{error}</p>}
           <button className="btn wide">
             {signup ? 'Create Account' : 'Log In'}
           </button>

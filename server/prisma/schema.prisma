@@ -37,6 +37,8 @@ model User {
   reviews       Review[]
   notifications Notification[]
   googleId String? @unique
+  passwordResetTokens PasswordResetToken[]
+
 }
 
 model Branch {
@@ -124,4 +126,14 @@ model OAuthLoginCode {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }

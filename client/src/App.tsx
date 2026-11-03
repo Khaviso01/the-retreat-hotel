@@ -36,6 +36,8 @@ import {
 } from './pages/AdminPages';
 import PaymentCallback from './pages/PaymentCallback';
 import GoogleCallback from './pages/GoogleCallback';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 /**
  * Route guard component enforcing administrator role authorization.
@@ -77,7 +79,9 @@ export default function App() {
           <Route path="/signed-out" element={<AuthSuccess signedOut />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/payment/callback" element={<PaymentCallback />} />
-          <Route path="/auth/google/callback" element={<GoogleCallback />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
 
           {/* Protected Admin Routes */}
           <Route
