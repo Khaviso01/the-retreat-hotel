@@ -1,37 +1,26 @@
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const smtpPort = Number(process.env.SMTP_PORT || 587);
+// Initialize Resend with your API key.
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: smtpPort,
-  secure: smtpPort === 465,
-
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-
-  // Fail faster if the SMTP connection cannot be established.
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-
-  // Require encryption when using Gmail on port 587.
-  requireTLS: smtpPort === 587,
-});
-
+// Send password reset emails using Resend's HTTPS API.
 export async function sendPasswordResetEmail(
   email: string,
   resetUrl: string
-) {
-  try {
-    console.log('SMTP: Attempting to send password reset email');
+): Promise<void> {
+  const from = process.env.RESEND_FROM_EMAIL;
 
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM,
-      to: email,
+  if (!process.env.RESEND_API_KEY || !from) {
+    throw new Error('Resend email configuration is missing.');
+  }
+
+  try {
+    console.log('RESEND: Attempting to send password reset email');
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: [email],
       subject: 'Reset your The Retreat password',
       text: `You requested a password reset for The Retreat.
 
@@ -43,9 +32,13 @@ This link expires in 15 minutes.
 If you did not request this, you can ignore this email.`,
     });
 
-    console.log('SMTP: Email accepted by server:', info.messageId);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    console.log('RESEND: Email accepted:', data?.id);
   } catch (error) {
-    console.error('SMTP: Email sending failed:', error);
+    console.error('RESEND: Failed to send password reset email:', error);
     throw error;
   }
 }
