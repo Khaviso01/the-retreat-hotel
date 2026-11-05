@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   BedDouble,
   CalendarDays,
@@ -86,6 +86,18 @@ const adminLinks = [
 
 export function AdminSidebar() {
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
+  const { logout, confirm } = useApp();
+
+  const handleSignOut = () => {
+    confirm(
+      'Are you sure you want to sign out of the admin dashboard?',
+      () => {
+        logout();
+        navigate('/signed-out');
+      }
+    );
+  };
 
   return (
     <>
@@ -110,10 +122,14 @@ export function AdminSidebar() {
             {label}
           </NavLink>
         ))}
-        <NavLink to="/admin/signout">
+        <button
+          type="button"
+          className="btn btn-admin-signout"
+          onClick={handleSignOut}
+        >
           <LogOut size={18} />
-          Sign Out
-        </NavLink>
+          <span>Sign Out</span>
+        </button>
       </aside>
     </>
   );

@@ -610,32 +610,79 @@ export function NotificationComposer({
 }
 
 // Admin component 10: simple accessible report bars.
-export function RevenueChart({ bookings }: { bookings: Booking[] }) {
-  const counts = Array.from({ length: 6 }, (_, i) =>
-    bookings.filter((b) => new Date(b.createdAt).getMonth() === i).length
+
+// Admin component 10: dynamic monthly booking chart.
+export function RevenueChart({
+  bookings
+}: {
+  bookings: Booking[];
+}) {
+  // Get the current month and year.
+  const today = new Date();
+
+  // Generate the last 12 months dynamically.
+  const months = Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(
+      today.getFullYear(),
+      today.getMonth() - (11 - index),
+      1
+    );
+
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    // Count bookings created during this month.
+    const count = bookings.filter((booking) => {
+      const bookingDate = new Date(booking.createdAt);
+
+      return (
+        !Number.isNaN(bookingDate.getTime()) &&
+        bookingDate.getFullYear() === year &&
+        bookingDate.getMonth() === month
+      );
+    }).length;
+
+    return {
+      key: `${year}-${month}`,
+      label: date.toLocaleDateString('en-ZA', {
+        month: 'short',
+        year: '2-digit'
+      }),
+      count
+    };
+  });
+
+  // Determine the highest booking count for bar scaling.
+  const max = Math.max(
+    1,
+    ...months.map((month) => month.count)
   );
-  const max = Math.max(1, ...counts);
 
   return (
     <div className="report-chart">
-      <h3>Bookings by Month (Jan–Jun)</h3>
+      <h3>Bookings by Month (Last 12 Months)</h3>
+
       <div className="bars">
-        {counts.map((count, i) => (
-          <div key={i}>
+        {months.map((month) => (
+          <div key={month.key}>
             <span
+              title={`${month.label}: ${month.count} bookings`}
               style={{
-                height: Math.max(8, (count / max) * 180) + 'px',
+                height:
+                  month.count === 0
+                    ? '0px'
+                    : `${Math.max(8, (month.count / max) * 180)}px`
               }}
             />
-            <small>
-              {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][i]}
-            </small>
+
+            <small>{month.label}</small>
           </div>
         ))}
       </div>
     </div>
   );
 }
+
 
 // Admin component 11: confirmation and feedback panel.
 export function AdminFeedback({ message }: { message: string }) {

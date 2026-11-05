@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Star } from 'lucide-react';
 
 import {
   api,
@@ -379,30 +379,89 @@ export function AdminUsers() {
 }
 
 // Display guest reviews, including ratings and written feedback.
+
 export function AdminReviews() {
-  const { data } = useAdminData<
-    {
-      id: string;
-      text: string;
-      rating: number;
-      branchId: string;
-    }[]
-  >('/reviews');
+  const { data: reviews } = useAdminData<{
+    id: string;
+    text: string;
+    rating: number;
+    branchId: string;
+    createdAt: string;
+    user?: { name: string };
+    branch?: { name: string };
+  }[]>('/reviews');
+
+  const { data: branches } =
+    useAdminData<Branch[]>('/branches');
 
   return (
     <AdminLayout>
       <PageTitle
         title="Guest Reviews"
-        subtitle="Read submitted hotel feedback"
+        subtitle="Monitor hotel ratings and guest feedback"
       />
 
+      {/* Overall ratings for each hotel branch */}
       <div className="admin-cards">
-        {data?.length ? (
-          data.map(r => (
-            <div className="panel" key={r.id}>
-              <h3>★ {r.rating} / 5</h3>
-              <p>{r.text}</p>
-              <small>{r.branchId}</small>
+        {branches?.map(branch => (
+          <div className="panel" key={branch.id}>
+            <h3>{branch.name}</h3>
+
+            <div className="branch-rating">
+              <Star
+                size={20}
+                fill="#FACC15"
+                color="#FACC15"
+              />
+
+              {branch.reviewCount ? (
+                <>
+                  <strong>{branch.rating.toFixed(1)} / 5</strong>
+                  <span className="muted">
+                    ({branch.reviewCount} reviews)
+                  </span>
+                </>
+              ) : (
+                <span className="muted">Not yet rated</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Individual guest reviews */}
+      <h1 className="admin-review-title">Guest Feedback</h1>
+
+      <div className="admin-cards">
+        {reviews?.length ? (
+          reviews.map(review => (
+            <div className="panel" key={review.id}>
+              <div className="branch-rating">
+                <Star
+                  size={18}
+                  fill="#FACC15"
+                  color="#FACC15"
+                />
+
+                <strong>{review.rating} / 5</strong>
+              </div>
+
+              <p>{review.text}</p>
+
+              <strong>
+                {review.user?.name ?? 'Guest'}
+              </strong>
+
+              <p className="muted">
+                {review.branch?.name ?? review.branchId}
+              </p>
+
+              {review.createdAt && (
+                <small className="muted">
+                  {new Date(review.createdAt)
+                    .toLocaleDateString('en-ZA')}
+                </small>
+              )}
             </div>
           ))
         ) : (
@@ -412,6 +471,7 @@ export function AdminReviews() {
     </AdminLayout>
   );
 }
+
 
 // Send notifications and announcements to registered guests.
 export function AdminNotifications() {
@@ -476,42 +536,6 @@ export function AdminSettings() {
 
       <div className="panel">
         <SettingsPanel />
-      </div>
-    </AdminLayout>
-  );
-}
-
-// Confirm administrator sign-out and redirect to the signed-out page.
-export function AdminSignout() {
-  const { logout, confirm } = useApp();
-  const navigate = useNavigate();
-
-  return (
-    <AdminLayout>
-      <PageTitle
-        title="Sign Out"
-        subtitle="Securely end your admin session"
-      />
-
-      <div className="panel">
-        <h2>Sign out of The Retreat?</h2>
-        <p>You will return to the guest site.</p>
-
-        <button
-          className="btn danger"
-          onClick={() =>
-            confirm(
-              'Are you sure you want to sign out of the admin dashboard?',
-              () => {
-                logout();
-                navigate('/signed-out');
-              }
-            )
-          }
-        >
-          <LogOut size={17} />
-          Sign Out
-        </button>
       </div>
     </AdminLayout>
   );

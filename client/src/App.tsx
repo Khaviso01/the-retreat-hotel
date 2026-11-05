@@ -32,7 +32,6 @@ import {
   AdminNotifications,
   AdminReports,
   AdminSettings,
-  AdminSignout,
 } from './pages/AdminPages';
 import PaymentCallback from './pages/PaymentCallback';
 import GoogleCallback from './pages/GoogleCallback';
@@ -153,14 +152,6 @@ export default function App() {
             element={
               <AdminOnly>
                 <AdminSettings />
-              </AdminOnly>
-            }
-          />
-          <Route
-            path="/admin/signout"
-            element={
-              <AdminOnly>
-                <AdminSignout />
               </AdminOnly>
             }
           />
