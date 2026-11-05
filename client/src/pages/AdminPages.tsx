@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Star } from 'lucide-react';
+import { Plus, Star, Trash2 } from 'lucide-react';
 
 import {
   api,
@@ -234,6 +234,30 @@ export function AdminBookings() {
       }
     );
 
+  // Confirm and remove a user without booking history.
+  const handleDeleteUser = (user: User) => {
+    confirm(
+      `Are you sure you want to remove ${user.name}? This action cannot be undone.`,
+      async () => {
+        try {
+          await send(
+            `/admin/users/${user.id}`,
+            'DELETE'
+          );
+
+          toast('User removed successfully!');
+          reload();
+        } catch (err) {
+          toast(
+            err instanceof Error
+              ? err.message
+              : 'Failed to remove user.'
+          );
+        }
+      }
+    );
+  };
+
   return (
     <AdminLayout>
       <PageTitle
@@ -361,18 +385,294 @@ export function AdminBranches() {
 
 
 // Display registered guest and administrator accounts.
+// Manage registered users and their access roles.
 export function AdminUsers() {
-  const { data } = useAdminData<User[]>('/admin/users');
+  const { data: users, reload } =
+    useAdminData<User[]>('/admin/users');
+
+  const { toast, confirm } = useApp();
+
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'GUEST' as 'GUEST' | 'ADMIN',
+  });
+
+  // Create a user through the admin API.
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSaving(true);
+
+    try {
+      await send('/admin/users', 'POST', form);
+
+      toast('User added successfully!');
+      setShowForm(false);
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'GUEST',
+      });
+      reload();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to add user.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Confirm changes to an existing user's role.
+  const handleRoleChange = (
+    user: User,
+    role: 'GUEST' | 'ADMIN'
+  ) => {
+    if (user.role.toUpperCase() === role) return;
+
+    confirm(
+      `Change ${user.name}'s role to ${role}?`,
+      async () => {
+        try {
+          await send(
+            `/admin/users/${user.id}/role`,
+            'PATCH',
+            { role }
+          );
+
+          toast('User role updated successfully!');
+          reload();
+        } catch (err) {
+          toast(
+            err instanceof Error
+              ? err.message
+              : 'Failed to update user role.'
+          );
+        }
+      }
+    );
+  };
+
+  // Remove a user after confirmation.
+  const handleDeleteUser = (user: User) => {
+    confirm(
+      `Are you sure you want to remove ${user.name}? This action cannot be undone.`,
+      async () => {
+        try {
+          // Delete the user through the admin API.
+          await send(
+            `/admin/users/${user.id}`,
+            'DELETE'
+          );
+
+          toast('User removed successfully!');
+
+          // Refresh the users table.
+          reload();
+        } catch (err) {
+          toast(
+            err instanceof Error
+              ? err.message
+              : 'Failed to remove user.'
+          );
+        }
+      }
+    );
+  };
 
   return (
     <AdminLayout>
       <PageTitle
         title="Manage Users"
-        subtitle="Registered guests and administrators"
+        subtitle="Add users and manage access permissions"
+        action={
+          !showForm && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setShowForm(true)}
+            >
+              <Plus size={17} />
+              Add User
+            </button>
+          )
+        }
       />
 
+      {showForm && (
+        <div className="panel">
+          <h3>Add New User</h3>
+
+          <form
+            className="admin-user-form"
+            onSubmit={handleAddUser}
+          >
+            <label>
+              Full Name
+              <input
+                required
+                value={form.name}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    name: e.target.value,
+                  })
+                }
+                placeholder="Enter full name"
+              />
+            </label>
+
+            <label>
+              Email Address
+              <input
+                required
+                type="email"
+                value={form.email}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    email: e.target.value,
+                  })
+                }
+                placeholder="Enter email address"
+              />
+            </label>
+
+            <label>
+              Password
+              <input
+                required
+                type="password"
+                minLength={8}
+                value={form.password}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    password: e.target.value,
+                  })
+                }
+                placeholder="Minimum 8 characters"
+              />
+            </label>
+
+            <label>
+              Assign Role
+              <select
+                value={form.role}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    role: e.target.value as
+                      'GUEST' | 'ADMIN',
+                  })
+                }
+              >
+                <option value="GUEST">Guest</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </label>
+
+            {error && (
+              <p role="alert" className="error">
+                {error}
+              </p>
+            )}
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => {
+                  setShowForm(false);
+                  setError('');
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="btn"
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Add User'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <div className="panel">
-        {data ? <UsersTable users={data} /> : <Loading />}
+        <h3>Registered Users</h3>
+
+        {users ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Current Role</th>
+                  <th>Assign Role</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {users.map(user => (
+                  <tr key={user.id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.role}</td>
+                    <td>
+                      <select
+                        aria-label={`Role for ${user.name}`}
+                        value={user.role.toUpperCase()}
+                        onChange={e =>
+                          handleRoleChange(
+                            user,
+                            e.target.value as
+                            'GUEST' | 'ADMIN'
+                          )
+                        }
+                      >
+                        <option value="GUEST">
+                          Guest
+                        </option>
+                        <option value="ADMIN">
+                          Admin
+                        </option>
+                      </select>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn-delete-user"
+                        onClick={() => handleDeleteUser(user)}
+                        title={`Remove ${user.name}`}
+                        aria-label={`Remove ${user.name}`}
+                      >
+                        <Trash2 size={17} />
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <Loading />
+        )}
       </div>
     </AdminLayout>
   );

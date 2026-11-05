@@ -1,4 +1,3 @@
-
 import { Router, type Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';

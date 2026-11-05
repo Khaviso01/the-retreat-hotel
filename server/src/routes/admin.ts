@@ -1,4 +1,4 @@
-
+import bcrypt from 'bcryptjs';
 import {
   Router,
   type Request,
@@ -14,7 +14,8 @@ import { prisma } from '../services/prisma.js';
 import { roomImages } from '../services/seed.js';
 import {
   requireAuth,
-  requireAdmin
+  requireAdmin,
+  type AuthRequest
 } from '../middleware/auth.js';
 
 // Initialize the admin router.
@@ -24,11 +25,12 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 // Handle asynchronous Express routes.
+// Handle asynchronous admin routes with authentication support.
 function asyncRoute(
-  handler: (req: Request, res: Response) => Promise<void>
+  handler: (req: AuthRequest, res: Response) => Promise<void>
 ) {
   return (
-    req: Request,
+    req: AuthRequest,
     res: Response,
     next: NextFunction
   ) => {
@@ -49,7 +51,6 @@ const roomSchema = z.object({
 });
 
 // Validation for hotel branches.
-
 const branchSchema = z.object({
   name: z.string().trim().min(1),
   city: z.string().trim().min(1),
@@ -68,6 +69,19 @@ const notificationSchema = z.object({
   title: z.string().trim().min(1),
   message: z.string().trim().min(1),
   userId: z.string().optional()
+});
+
+// Validate new users created by an administrator.
+const createUserSchema = z.object({
+  name: z.string().trim().min(2),
+  email: z.string().trim().email(),
+  password: z.string().min(8),
+  role: z.enum(['GUEST', 'ADMIN'])
+});
+
+// Validate role changes.
+const updateUserRoleSchema = z.object({
+  role: z.enum(['GUEST', 'ADMIN'])
 });
 
 // GET /api/admin/stats
@@ -141,6 +155,187 @@ router.get(
         role: user.role === Role.ADMIN ? 'admin' : 'guest'
       }))
     );
+  })
+);
+
+// POST /api/admin/users
+// Allow administrators to create guest and admin accounts.
+router.post(
+  '/users',
+  asyncRoute(async (req, res) => {
+    const values = createUserSchema.parse(req.body);
+
+    const email = values.email.toLowerCase();
+
+    // Prevent duplicate email addresses.
+    const existing = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existing) {
+      res.status(409).json({
+        error: 'A user with this email already exists.'
+      });
+      return;
+    }
+
+    // Hash passwords using the same method as registration.
+    const passwordHash = await bcrypt.hash(
+      values.password,
+      12
+    );
+
+    const user = await prisma.user.create({
+      data: {
+        id: randomUUID(),
+        name: values.name,
+        email,
+        passwordHash,
+        role: values.role as Role
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    });
+
+    res.status(201).json({
+      ...user,
+      role: user.role === Role.ADMIN ? 'admin' : 'guest'
+    });
+  })
+);
+
+// PATCH /api/admin/users/:id/role
+// Allow administrators to change user permissions.
+router.patch(
+  '/users/:id/role',
+  asyncRoute(async (req, res) => {
+    const userId = String(req.params.id);
+    const { role } = updateUserRoleSchema.parse(req.body);
+
+    const existing = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!existing) {
+      res.status(404).json({
+        error: 'User not found.'
+      });
+      return;
+    }
+
+    // Prevent removing the final administrator.
+    if (
+      existing.role === Role.ADMIN &&
+      role === 'GUEST'
+    ) {
+      const adminCount = await prisma.user.count({
+        where: { role: Role.ADMIN }
+      });
+
+      if (adminCount <= 1) {
+        res.status(409).json({
+          error: 'You cannot remove the last administrator.'
+        });
+        return;
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { role: role as Role },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    });
+
+    res.json({
+      ...updated,
+      role: updated.role === Role.ADMIN
+        ? 'admin'
+        : 'guest'
+    });
+  })
+);
+
+// DELETE /api/admin/users/:id
+// Only delete users who have no bookings.
+router.delete(
+  '/users/:id',
+  asyncRoute(async (req, res) => {
+    const userId = String(req.params.id);
+
+    // Check whether the user exists.
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User not found.'
+      });
+      return;
+    }
+
+    // Prevent an administrator from deleting their own account.
+    if (req.auth?.sub === userId) {
+      res.status(403).json({
+        error: 'You cannot remove your own account.'
+      });
+      return;
+    }
+
+    // Users with any booking history cannot be deleted.
+    const bookingCount = await prisma.booking.count({
+      where: { userId }
+    });
+
+    if (bookingCount > 0) {
+      res.status(409).json({
+        error: 'This user has bookings and cannot be removed.'
+      });
+      return;
+    }
+
+    // Prevent removing the last administrator.
+    if (user.role === Role.ADMIN) {
+      const adminCount = await prisma.user.count({
+        where: { role: Role.ADMIN }
+      });
+
+      if (adminCount <= 1) {
+        res.status(409).json({
+          error: 'You cannot remove the last administrator.'
+        });
+        return;
+      }
+    }
+
+    // Remove related records and the user in one transaction.
+    await prisma.$transaction(async tx => {
+      await tx.review.deleteMany({
+        where: { userId }
+      });
+
+      await tx.oAuthLoginCode.deleteMany({
+        where: { userId }
+      });
+
+      await tx.user.delete({
+        where: { id: userId }
+      });
+    });
+
+    res.json({
+      ok: true,
+      message: 'User removed successfully.'
+    });
   })
 );
 
@@ -401,6 +596,17 @@ router.use(
       });
       return;
     }
+
+    // Handle duplicate email addresses.
+if (
+  error instanceof Prisma.PrismaClientKnownRequestError &&
+  error.code === 'P2002'
+) {
+  res.status(409).json({
+    error: 'A user with this email already exists.'
+  });
+  return;
+}
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

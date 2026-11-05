@@ -1397,6 +1397,70 @@ p {
   font-size: 13px;
 }
 
+.admin-user-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.admin-user-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.admin-user-form input,
+.admin-user-form select,
+.table-wrap select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d9dfdc;
+  border-radius: 8px;
+  background: white;
+  color: #222;
+  font: inherit;
+}
+
+.admin-user-form .form-actions,
+.admin-user-form .error {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrap th,
+.table-wrap td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #e5e9e7;
+}
+
+@media (max-width: 768px) {
+  .admin-user-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+  }
+}
+
 .admin-sidebar > a.active:not(.brand),
 .admin-sidebar > a:hover:not(.brand) {
   background: #0b6355;
@@ -1557,6 +1621,33 @@ p {
 .admin-branch p {
   color: var(--muted);
   font-size: 13px;
+}
+
+/* Remove user button */
+.btn-delete-user {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: transparent;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-delete-user:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.btn-delete-user:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
 }
 
 /* Amenities input */
