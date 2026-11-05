@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut } from 'lucide-react';
+import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut, UserRound, Mail } from 'lucide-react';
 import { api, send, money, type Branch, type Room, type Booking, type Notice } from '../lib/api';
 import { useApp } from '../context/AppContext';
 import {

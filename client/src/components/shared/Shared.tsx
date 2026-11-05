@@ -15,6 +15,8 @@ import {
   Star,
   ClipboardList,
   ShieldCheck,
+  UserRound,
+ LogIn,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -27,6 +29,7 @@ export function Brand() {
   );
 }
 
+
 export function GuestNav() {
   const { user } = useApp();
 
@@ -35,19 +38,40 @@ export function GuestNav() {
       <Brand />
 
       <div className="nav-links">
-        <NavLink to="/">Home</NavLink>
-        <NavLink to="/branches">Our Branches</NavLink>
-        <NavLink to="/bookings">My Bookings</NavLink>
-        <NavLink to="/favourites">Favourites</NavLink>
-        <NavLink to="/notifications">Notifications</NavLink>
+        <NavLink to="/" end>
+          <House size={18} />
+          <span>Home</span>
+        </NavLink>
+
+        <NavLink to="/branches">
+          <Building2 size={18} />
+          <span>Our Branches</span>
+        </NavLink>
+
+        <NavLink to="/bookings">
+          <CalendarDays size={18} />
+          <span>My Bookings</span>
+        </NavLink>
+
+        <NavLink to="/favourites">
+          <Heart size={18} />
+          <span>Favourites</span>
+        </NavLink>
+
+        <NavLink to="/notifications">
+          <Bell size={18} />
+          <span>Notifications</span>
+        </NavLink>
 
         <NavLink to={user ? '/profile' : '/login'}>
-          {user ? 'Profile' : 'Sign In'}
+          {user ? <UserRound size={18} /> : <LogIn size={18} />}
+          <span>{user ? 'Profile' : 'Sign In'}</span>
         </NavLink>
       </div>
     </nav>
   );
 }
+
 
 const adminLinks = [
   ['/admin', 'Dashboard', ChartNoAxesCombined],

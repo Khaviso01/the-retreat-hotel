@@ -374,6 +374,13 @@ p {
   top: 0;
 }
 
+.guest-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--nav-height);
+}
+
 @media (max-width: 768px) {
   .guest-nav {
     justify-content: flex-start;
@@ -386,14 +393,31 @@ p {
 
 .nav-links {
   display: flex;
-  gap: 22px;
   align-items: center;
+  gap: var(--space-7);
 }
 
 .nav-links a {
-  font-size: 16px;
-  font-weight: 500;
-  color: #4b5c57;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--color-nav-text);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.nav-links a svg {
+  width: var(--text-xl);
+  height: var(--text-xl);
+  flex-shrink: 0;
+}
+
+.nav-links a.active,
+.nav-links a:hover {
+  color: var(--teal);
 }
 
 .nav-links a.active,
@@ -579,10 +603,11 @@ p {
 
 .footer {
   text-align: center;
-  padding: 27px 15px;
-  background: #edf2ef;
-  color: #677b73;
-  font-size: 12px;
+  padding: var(--space-9) var(--space-5);
+  background: var(--color-footer-bg);
+  color: var(--color-footer-text);
+  font-size: var(--text-md);
+  margin-top: auto;
 }
 
 .bottom-nav {
@@ -1494,6 +1519,7 @@ p {
   }
   .guest-app {
     padding-bottom: 64px;
+    padding-top: var(--nav-height);
   }
   .hero {
     height: 295px;
