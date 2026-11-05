@@ -64,7 +64,6 @@ export function GuestNav() {
         </NavLink>
 
         <NavLink to={user ? '/profile' : '/login'}>
-          {user && <UserRound size={18} />}
           <span className="btn">{user ? 'Profile' : 'Sign In'}</span>
         </NavLink>
       </div>
