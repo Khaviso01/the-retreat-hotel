@@ -237,6 +237,46 @@ p {
   text-decoration: underline;
 }
 
+/* Password input container */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Password input */
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 48px;
+}
+
+/* Eye icon button */
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--teal);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .auth-card form {
   display: flex;
   flex-direction: column;
@@ -299,6 +339,7 @@ p {
 
 .btn.wide {
   width: 100%;
+  margin-top: var(--space-9);
 }
 
 .actions {
@@ -401,7 +442,7 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   font-size: var(--text-lg);
   font-weight: var(--weight-medium);
   color: var(--color-nav-text);
@@ -428,7 +469,7 @@ p {
 .hero {
   height: 430px;
   background: linear-gradient(90deg, rgba(0, 36, 34, 0.82), rgba(0, 36, 34, 0.04)),
-    url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1800&q=90')
+    url('https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D')
       center 52% / cover;
 }
 
@@ -624,6 +665,7 @@ p {
 
 .page-heading h1 {
   margin-bottom: 7px;
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .page-heading p {
@@ -711,10 +753,17 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-1);
   min-width: 82px;
-  font-size: 12px;
+  font-size: var(--text-md);
   color: var(--muted);
+}
+
+.policy-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 15px;
 }
 
 .location-card {
@@ -1014,8 +1063,18 @@ p {
   font-weight: 700;
 }
 
-.profile-page > .panel {
-  max-width: 650px;
+.profile-page {
+  width: min(850px, calc(100% - 48px));
+  margin-inline: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile-page .panel {
+  width: 100%;
+  margin-inline: auto;
 }
 
 .avatar {
@@ -1040,6 +1099,12 @@ p {
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
   padding: 17px 0;
+}
+
+.profile-link-left {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .auth-page {

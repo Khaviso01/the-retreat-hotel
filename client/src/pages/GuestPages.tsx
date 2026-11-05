@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut, UserRound, Mail } from 'lucide-react';
+import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
 import { api, send, money, type Branch, type Room, type Booking, type Notice } from '../lib/api';
 import { useApp } from '../context/AppContext';
 import {
@@ -786,15 +786,25 @@ export function Login() {
   const [params] = useSearchParams();
 
   const [signup, setSignup] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const [name, setName] = useState('');
+const [email, setEmail] = useState('');
+const [password, setPassword] = useState('');
+const [confirmPassword, setConfirmPassword] = useState('');
+const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const [error, setError] = useState('');
 
   const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
+  e.preventDefault();
+  setError('');
+
+  // Validate passwords only during Sign Up
+  if (signup && password !== confirmPassword) {
+    setError('Passwords do not match.');
+    return;
+  }
+
+  try {
       const u = signup
         ? await register(name, email, password)
         : await login(email, password);
@@ -862,27 +872,84 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
-         <label>
-  Password
-  <input
-    type="password"
-    required
-    minLength={signup ? 8 : undefined}
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-  />
-</label>
 
-{/* Only show Forgot Password on Login, not Sign Up */}
-{!signup && (
-  <div className="forgot-password-wrapper">
-    <Link to="/forgot-password" className="forgot-password">
-      Forgot Password?
-    </Link>
-  </div>
+          <label>
+            Password
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={signup ? 8 : undefined}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={signup ? 'new-password' : 'current-password'}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
+          </label>
+
+
+{/* Confirm Password - Sign Up only */}
+{signup && (
+  <label>
+    Confirm Password
+
+    <div className="password-input-wrapper">
+      <input
+        type={showConfirmPassword ? 'text' : 'password'}
+        required
+        minLength={8}
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        autoComplete="new-password"
+        placeholder="Confirm your password"
+      />
+
+      <button
+        type="button"
+        className="password-toggle"
+        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+        aria-label={
+          showConfirmPassword
+            ? 'Hide confirm password'
+            : 'Show confirm password'
+        }
+        aria-pressed={showConfirmPassword}
+      >
+        {showConfirmPassword ? (
+          <EyeOff size={20} />
+        ) : (
+          <Eye size={20} />
+        )}
+      </button>
+    </div>
+  </label>
 )}
 
-{error && <p className="error">{error}</p>}
+
+
+          {/* Only show Forgot Password on Login, not Sign Up */}
+          {!signup && (
+            <div className="forgot-password-wrapper">
+              <Link to="/forgot-password" className="forgot-password">
+                Forgot Password?
+              </Link>
+            </div>
+          )}
+
+          {error && <p className="error">{error}</p>}
           <button className="btn wide">
             {signup ? 'Create Account' : 'Log In'}
           </button>

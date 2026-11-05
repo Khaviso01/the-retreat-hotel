@@ -15,6 +15,7 @@ import {
   CheckCircle,
   ChevronRight,
   Star,
+  Building2
 } from 'lucide-react';
 import { api, send, money, type Branch, type Room, type Booking, type Notice } from '../../lib/api';
 import { useApp } from '../../context/AppContext';
@@ -465,23 +466,47 @@ export function NotificationCard({
 }
 
 // Guest component 11: profile shortcut list.
+
 export function ProfileLinks() {
+  const links = [
+    {
+      to: '/bookings',
+      label: 'View Bookings',
+      icon: CalendarDays,
+    },
+    {
+      to: '/favourites',
+      label: 'Favourites',
+      icon: Heart,
+    },
+    {
+      to: '/notifications',
+      label: 'Notifications',
+      icon: Bell,
+    },
+    {
+      to: '/branches',
+      label: 'Branches',
+      icon: Building2,
+    },
+  ];
+
   return (
     <div className="profile-links">
-      {[
-        ['/bookings', 'My Bookings'],
-        ['/favourites', 'Favourites'],
-        ['/notifications', 'Notifications'],
-        ['/branches', 'Our Branches'],
-      ].map(([url, label]) => (
-        <Link to={url} key={url}>
-          {label}
-          <ChevronRight size={18} />
+      {links.map(({ to, label, icon: Icon }) => (
+        <Link key={to} to={to}>
+          <span className="profile-link-left">
+            <Icon size={20} />
+            <span>{label}</span>
+          </span>
+
+          <ChevronRight size={20} />
         </Link>
       ))}
     </div>
   );
 }
+
 
 // Guest component 12: sharing button.
 export function ShareHotel({ branch }: { branch: Branch }) {

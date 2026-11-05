@@ -16,7 +16,7 @@ import {
   ClipboardList,
   ShieldCheck,
   UserRound,
- LogIn,
+  LogIn,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -64,8 +64,8 @@ export function GuestNav() {
         </NavLink>
 
         <NavLink to={user ? '/profile' : '/login'}>
-          {user ? <UserRound size={18} /> : <LogIn size={18} />}
-          <span>{user ? 'Profile' : 'Sign In'}</span>
+          {user && <UserRound size={18} />}
+          <span className="btn">{user ? 'Profile' : 'Sign In'}</span>
         </NavLink>
       </div>
     </nav>
