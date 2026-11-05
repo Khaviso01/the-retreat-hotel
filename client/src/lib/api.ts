@@ -13,9 +13,12 @@ export type Branch = {
   description: string;
   image: string;
   rating: number;
+  reviewCount?: number;
   amenities: string[];
   policies: string[];
+  cancellationHours: number;
 };
+
 
 export type Room = {
   id: string;
@@ -44,6 +47,19 @@ export type Booking = {
   createdAt: string;
 };
 
+export type Review = {
+  id: string;
+  rating: number;
+  text: string;
+  createdAt: string;
+  user?: {
+    name: string;
+  };
+  branch?: {
+    name: string;
+  };
+};
+
 export type Notice = {
   id: string;
   userId: string;
@@ -61,6 +77,7 @@ export type Stats = {
   users: number;
   occupancy: number;
 };
+
 
 /**
  * Formats a numerical amount into a South African Rand (ZAR) currency string.

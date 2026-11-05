@@ -257,42 +257,99 @@ export function AdminBookings() {
 }
 
 // Display hotel branches and allow administrators to edit their details.
+
+
 export function AdminBranches() {
   const { data: branches, reload } =
     useAdminData<Branch[]>('/branches');
 
   const [editing, setEditing] = useState<Branch | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+
   const { toast } = useApp();
+
+  // Open empty form to add a branch
+  const handleAdd = () => {
+    setEditing(null);
+    setFormOpen(true);
+  };
+
+  // Open existing branch for editing
+  const handleEdit = (branch: Branch) => {
+    setEditing(branch);
+    setFormOpen(true);
+  };
+
+  // Close form
+  const handleCancel = () => {
+    setEditing(null);
+    setFormOpen(false);
+  };
+
+  // Add or update branch
+  const handleSave = async (values: Branch) => {
+    if (editing) {
+      await send(
+        '/admin/branches/' + editing.id,
+        'PATCH',
+        values
+      );
+
+      toast('Branch updated successfully!');
+    } else {
+      const { id, ...newBranch } = values;
+
+      await send(
+        '/admin/branches',
+        'POST',
+        newBranch
+      );
+
+      toast('Branch added successfully!');
+    }
+
+    handleCancel();
+    reload();
+  };
 
   return (
     <AdminLayout>
       <PageTitle
-        title={editing ? 'Edit Branch' : 'Manage Branches'}
-        subtitle="Update hotel information, images and locations"
+        title={
+          formOpen
+            ? editing
+              ? 'Edit Branch'
+              : 'Add New Branch'
+            : 'Manage Branches'
+        }
+        subtitle="Create, update, and manage hotel branches"
+        action={
+          !formOpen && (
+            <button
+              type="button"
+              className="btn"
+              onClick={handleAdd}
+            >
+              <Plus size={17} />
+              Add Branch
+            </button>
+          )
+        }
       />
 
-      {editing ? (
+      {formOpen ? (
         <div className="panel">
           <BranchForm
+            key={editing?.id ?? 'new'}
             branch={editing}
-            onCancel={() => setEditing(null)}
-            onSave={async v => {
-              await send(
-                '/admin/branches/' + v.id,
-                'PATCH',
-                v
-              );
-
-              toast('Branch updated successfully!');
-              setEditing(null);
-              reload();
-            }}
+            onCancel={handleCancel}
+            onSave={handleSave}
           />
         </div>
       ) : branches ? (
         <BranchManager
           branches={branches}
-          onEdit={setEditing}
+          onEdit={handleEdit}
         />
       ) : (
         <Loading />
@@ -300,6 +357,8 @@ export function AdminBranches() {
     </AdminLayout>
   );
 }
+
+
 
 // Display registered guest and administrator accounts.
 export function AdminUsers() {

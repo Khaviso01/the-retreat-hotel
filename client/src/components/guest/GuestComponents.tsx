@@ -219,22 +219,55 @@ export function SearchWidget({ branches }: { branches: Branch[] }) {
 
 
 // Guest component 2: photographic branch card.
+
+// Guest component 2: photographic branch card.
 export function BranchCard({ branch }: { branch: Branch }) {
+  const reviewCount = branch.reviewCount ?? 0;
+
   return (
     <article className="branch-card">
       <Link to={'/branches/' + branch.id}>
         <img src={branch.image} alt={branch.name} />
       </Link>
+
       <div className="branch-body">
         <div className="flex-between">
-          <Stars rating={branch.rating} />
+
+          <div className="branch-rating">
+            {/* Yellow star always remains visible */}
+            <Star
+              size={18}
+              fill="#FACC15"
+              color="#FACC15"
+            />
+
+            {/* Dynamic rating and review count */}
+            {reviewCount > 0 ? (
+              <>
+                <span className="rating-value">
+                  {branch.rating.toFixed(1)}
+                </span>
+
+                <span className="muted">
+                  ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                </span>
+              </>
+            ) : (
+              <span className="muted">Not yet rated</span>
+            )}
+          </div>
+
+
           <FavouriteButton branchId={branch.id} />
         </div>
+
         <h3>{branch.name}</h3>
+
         <p>
           <MapPin size={14} />
           {branch.address}
         </p>
+
         <Link className="btn small" to={'/branches/' + branch.id}>
           Explore Hotel <ChevronRight size={16} />
         </Link>
@@ -242,6 +275,7 @@ export function BranchCard({ branch }: { branch: Branch }) {
     </article>
   );
 }
+
 
 // Guest component 3: toggle favourite via authenticated API.
 export function FavouriteButton({ branchId }: { branchId: string }) {

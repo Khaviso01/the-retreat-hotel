@@ -307,24 +307,30 @@ export function BookingsTable({
               <td>
                 <Status value={b.status} />
               </td>
-              <td>
-                {b.status === 'pending' && (
-                  <button
-                    className="table-action"
-                    onClick={() => onStatus(b, 'confirmed')}
-                  >
-                    <CheckCircle size={17} /> Approve
-                  </button>
-                )}
-                {b.status !== 'cancelled' && (
-                  <button
-                    className="table-action red"
-                    onClick={() => onStatus(b, 'cancelled')}
-                  >
-                    Cancel
-                  </button>
-                )}
-              </td>
+              
+<td>
+  <div className="table-actions">
+    {b.status === 'pending' && (
+      <button
+        className="table-action"
+        onClick={() => onStatus(b, 'confirmed')}
+      >
+        <CheckCircle size={17} />
+        Approve
+      </button>
+    )}
+
+    {b.status !== 'cancelled' && (
+      <button
+        className="table-action red"
+        onClick={() => onStatus(b, 'cancelled')}
+      >
+        Cancel
+      </button>
+    )}
+  </div>
+</td>
+
             </tr>
           ))}
         </tbody>
@@ -368,11 +374,55 @@ export function BranchForm({
   onSave,
   onCancel,
 }: {
-  branch: Branch;
+  branch: Branch | null;
   onSave: (v: Branch) => Promise<void>;
   onCancel: () => void;
 }) {
-  const [v, setV] = useState(branch);
+
+  
+const [v, setV] = useState<Branch>({
+  id: branch?.id ?? '',
+  name: branch?.name ?? '',
+  city: branch?.city ?? '',
+  address: branch?.address ?? '',
+  description: branch?.description ?? '',
+  image: branch?.image ?? '',
+  rating: branch?.rating ?? 0,
+  amenities: branch?.amenities ?? [],
+  policies: branch?.policies ?? [],
+  cancellationHours: branch?.cancellationHours ?? 48,
+});
+
+// Stores the amenity currently being typed.
+const [newAmenity, setNewAmenity] = useState('');
+
+// Add a new amenity to the branch.
+const addAmenity = () => {
+  const amenity = newAmenity.trim();
+
+  if (!amenity) return;
+
+  // Prevent duplicate amenities.
+  if (v.amenities.some(a => a.toLowerCase() === amenity.toLowerCase())) {
+    return;
+  }
+
+  setV(prev => ({
+    ...prev,
+    amenities: [...prev.amenities, amenity],
+  }));
+
+  setNewAmenity('');
+};
+
+// Remove an amenity from the branch.
+const removeAmenity = (amenity: string) => {
+  setV(prev => ({
+    ...prev,
+    amenities: prev.amenities.filter(a => a !== amenity),
+  }));
+};
+
 
   const set = (k: keyof Branch, value: unknown) =>
     setV((prev) => ({ ...prev, [k]: value }));
@@ -408,11 +458,79 @@ export function BranchForm({
           onChange={(e) => set('rating', Number(e.target.value))}
         />
       </label>
+
+<label>
+  Cancellation Period (Hours)
+  <input
+    type="number"
+    min="0"
+    step="1"
+    required
+    value={v.cancellationHours}
+    onChange={(e) =>
+      set('cancellationHours', Number(e.target.value))
+    }
+  />
+</label>
+
+
+
+{/* Branch amenities */}
+<div className="amenities-field full">
+  <label htmlFor="new-amenity">Amenities</label>
+
+  <div className="amenity-input-row">
+    <input
+      id="new-amenity"
+      type="text"
+      placeholder="e.g. Free Wi-Fi, Swimming Pool"
+      value={newAmenity}
+      onChange={(e) => setNewAmenity(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addAmenity();
+        }
+      }}
+    />
+
+    <button
+      type="button"
+      className="btn"
+      onClick={addAmenity}
+      disabled={!newAmenity.trim()}
+    >
+      <Plus size={17} />
+      Add
+    </button>
+  </div>
+
+  {v.amenities.length > 0 && (
+    <div className="amenity-list">
+      {v.amenities.map((amenity) => (
+        <div className="amenity-tag" key={amenity}>
+          <span>{amenity}</span>
+
+          <button
+            type="button"
+            onClick={() => removeAmenity(amenity)}
+            aria-label={`Remove ${amenity}`}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
       <div className="actions full">
         <button type="button" className="btn outline" onClick={onCancel}>
           Cancel
         </button>
-        <button className="btn">Save Branch</button>
+        <button type="submit" className="btn">
+  {branch ? 'Save Branch' : 'Add Branch'}
+</button>
       </div>
     </form>
   );

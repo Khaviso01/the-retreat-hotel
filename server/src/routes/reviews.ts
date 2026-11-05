@@ -36,28 +36,53 @@ function asyncRoute(
 }
 
 // Convert Prisma records to the existing API response format.
+
 function formatReview(review: {
   id: string;
   userId: string;
   branchId: string;
   rating: number;
   text: string;
+  createdAt: Date;
+  user?: {
+    name: string;
+  };
+  branch?: {
+    name: string;
+  };
 }) {
   return {
     id: review.id,
     userId: review.userId,
     branchId: review.branchId,
     rating: review.rating,
-    text: review.text
+    text: review.text,
+    createdAt: review.createdAt.toISOString(),
+    user: review.user,
+    branch: review.branch
   };
 }
 
+
 // GET /api/reviews
 // Retrieve all hotel reviews from PostgreSQL.
+
 router.get(
   '/',
   asyncRoute(async (_req, res) => {
     const reviews = await prisma.review.findMany({
+      include: {
+        user: {
+          select: {
+            name: true
+          }
+        },
+        branch: {
+          select: {
+            name: true
+          }
+        }
+      },
       orderBy: {
         createdAt: 'desc'
       }
@@ -66,6 +91,7 @@ router.get(
     res.json(reviews.map(formatReview));
   })
 );
+
 
 // POST /api/reviews
 // Allow authenticated users to submit hotel reviews.

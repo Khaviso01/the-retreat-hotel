@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
-import { api, send, money, type Branch, type Room, type Booking, type Notice } from '../lib/api';
+import { api, send, money, type Branch, type Room, type Booking, type Notice, type Review
+} from '../lib/api';
 import { useApp } from '../context/AppContext';
 import {
   GuestNav,
@@ -74,6 +75,11 @@ function Wrap({ children }: { children: React.ReactNode }) {
 export function Home() {
   const { data: branches } = useData<Branch[]>('/branches');
 
+  const {
+  data: reviews,
+  error: reviewsError,
+} = useData<Review[]>('/reviews');
+
   return (
     <Wrap>
       <section className="hero">
@@ -108,6 +114,62 @@ export function Home() {
           Explore Our Hotels
         </Link>
       </section>
+
+
+{/* Guest reviews displayed on the landing page */}
+<section className="container section home-reviews">
+  <div className="section-heading">
+    <div>
+      <span className="eyebrow green">GUEST EXPERIENCES</span>
+      <h2>What Our Guests Say</h2>
+    </div>
+
+    <Link to="/reviews">View all reviews →</Link>
+  </div>
+
+  {reviewsError ? (
+    <p className="muted">Unable to load reviews right now.</p>
+  ) : reviews === null ? (
+    <Loading />
+  ) : reviews.length > 0 ? (
+    <div className="home-review-grid">
+      {reviews.slice(0, 3).map((review) => (
+        <article className="panel home-review-card" key={review.id}>
+          <Stars rating={review.rating} />
+
+          <p className="home-review-text">
+            "{review.text}"
+          </p>
+
+          <div className="home-review-author">
+            <strong>{review.user?.name ?? 'Guest'}</strong>
+
+            {review.branch?.name && (
+              <span className="muted">
+                {review.branch.name}
+              </span>
+            )}
+
+            {review.createdAt && (
+              <small className="muted">
+                {new Date(review.createdAt).toLocaleDateString('en-ZA', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </small>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  ) : (
+    <p className="muted">
+      No guest reviews yet. Be the first to share your experience!
+    </p>
+  )}
+</section>
+
     </Wrap>
   );
 }
@@ -1006,9 +1068,7 @@ export function AuthSuccess({ signedOut = false }: { signedOut?: boolean }) {
  * Hotel Reviews Feed & Submission View.
  */
 export function Reviews() {
-  const { data } = useData<{ id: string; rating: number; text: string }[]>(
-    '/reviews'
-  );
+  const { data, reload } = useData<Review[]>('/reviews');
   const { user, toast } = useApp();
   const { data: branches } = useData<Branch[]>('/branches');
 
@@ -1031,9 +1091,10 @@ export function Reviews() {
                 return;
               }
               try {
-                await send('/reviews', 'POST', { branchId, rating, text });
-                toast('Review submitted!');
-                setText('');
+               await send('/reviews', 'POST', { branchId, rating, text });
+toast('Review submitted!');
+setText('');
+await reload();
               } catch (e) {
                 toast((e as Error).message);
               }

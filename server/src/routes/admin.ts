@@ -49,15 +49,19 @@ const roomSchema = z.object({
 });
 
 // Validation for hotel branches.
+
 const branchSchema = z.object({
   name: z.string().trim().min(1),
   city: z.string().trim().min(1),
   address: z.string().trim().min(1),
-  description: z.string(),
-  image: z.string(),
+  description: z.string().trim(),
+  image: z.string().trim(),
   rating: z.number().min(0).max(5),
-  amenities: z.array(z.string())
+  amenities: z.array(z.string().trim().min(1)),
+  policies: z.array(z.string().trim().min(1)).optional(),
+  cancellationHours: z.number().int().nonnegative().optional(),
 });
+
 
 // Validation for notifications.
 const notificationSchema = z.object({
