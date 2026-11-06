@@ -28,6 +28,8 @@ import {
   ProfileLinks,
   ShareHotel,
 } from '../components/guest/GuestComponents';
+import { GuestProfileDashboard } from '../components/guest/GuestProfileDashboard';
+import '../styles.css';
 
 /**
  * Custom data-fetching hook for guest portal endpoints.
@@ -798,46 +800,52 @@ export function Notifications() {
   );
 }
 
+
 /**
- * Guest Profile Dashboard Page View.
+ * Guest Account Dashboard.
+ * Displays guest information, account shortcuts and sign-out.
  */
 export function Profile() {
   const { user, confirm, logout } = useApp();
   const navigate = useNavigate();
 
+  const handleSignOut = () => {
+    confirm('Are you sure you want to sign out?', () => {
+      logout();
+      navigate('/signed-out');
+    });
+  };
+
   return (
     <Wrap>
       <main className="container section profile-page">
-        <PageTitle title="My Profile" subtitle="Manage your account" />
-        <div className="panel">
-          <div className="avatar">{user?.name?.[0] || 'G'}</div>
-          <h2>{user?.name || 'Guest'}</h2>
-          <p>{user?.email || 'Sign in to access your profile'}</p>
-          {user ? (
-            <>
-              <ProfileLinks />
-              <button
-                className="btn danger"
-                onClick={() =>
-                  confirm('Are you sure you want to sign out?', () => {
-                    logout();
-                    navigate('/signed-out');
-                  })
-                }
-              >
-                <LogOut size={16} /> Sign Out
-              </button>
-            </>
-          ) : (
+        <PageTitle
+          title="My Profile"
+          subtitle="Manage your account and reservations"
+        />
+
+        {user ? (
+          <GuestProfileDashboard
+            name={user.name}
+            email={user.email}
+            onSignOut={handleSignOut}
+          />
+        ) : (
+          <div className="panel" style={{ textAlign: 'center', padding: 40 }}>
+            <h2>Welcome to The Retreat</h2>
+            <p className="muted">
+              Sign in to manage your bookings, favourites and account.
+            </p>
             <Link className="btn" to="/login">
               Sign In
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </main>
     </Wrap>
   );
 }
+
 
 /**
  * Guest Authentication (Login / Signup) Form Page View.

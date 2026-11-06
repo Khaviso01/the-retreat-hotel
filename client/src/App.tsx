@@ -37,6 +37,9 @@ import PaymentCallback from './pages/PaymentCallback';
 import GoogleCallback from './pages/GoogleCallback';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
+import AdminProfile from './pages/AdminProfile';
+import GuestPersonalInfo from './pages/GuestPersonalInfo';
+import GuestSecurity from './pages/GuestSecurity';
 
 /**
  * Route guard component enforcing administrator role authorization.
@@ -51,6 +54,30 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
   ) : (
     <Navigate to="/login" state={{ from: location }} replace />
   );
+}
+/**
+ * Protects guest account pages.
+ * Redirects unauthenticated users to login.
+ */
+function GuestOnly({ children }: { children: React.ReactNode }) {
+  const { user } = useApp();
+  const location = useLocation();
+
+  if (!user) {
+    return (
+      <Navigate
+        to={`/login?next=${encodeURIComponent(location.pathname)}`}
+        replace
+      />
+    );
+  }
+
+  // Prevent administrators from accessing guest account settings.
+  if (user.role === 'admin') {
+    return <Navigate to="/admin/profile" replace />;
+  }
+
+  return <>{children}</>;
 }
 
 /**
@@ -80,7 +107,7 @@ export default function App() {
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          
+
 
           {/* Protected Admin Routes */}
           <Route
@@ -153,6 +180,33 @@ export default function App() {
               <AdminOnly>
                 <AdminSettings />
               </AdminOnly>
+            }
+          />
+
+          <Route
+            path="/admin/profile"
+            element={
+              <AdminOnly>
+                <AdminProfile />
+              </AdminOnly>
+            }
+          />
+          {/* Protected Guest Account Routes */}
+          <Route
+            path="/profile/personal-info"
+            element={
+              <GuestOnly>
+                <GuestPersonalInfo />
+              </GuestOnly>
+            }
+          />
+
+          <Route
+            path="/profile/security"
+            element={
+              <GuestOnly>
+                <GuestSecurity />
+              </GuestOnly>
             }
           />
 

@@ -105,7 +105,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       {children}
       {notice && (
         <div className="toast" role="status">
-          ✓ {notice}
+          {notice}
           <button onClick={() => setNotice('')}>×</button>
         </div>
       )}

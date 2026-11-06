@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   UserRound,
   LogIn,
+  ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -84,16 +85,29 @@ const adminLinks = [
   ['/admin/settings', 'Settings', Settings],
 ] as const;
 
+
 export function AdminSidebar() {
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
-  const { logout, confirm } = useApp();
 
+  // Get the currently signed-in administrator.
+  const { user, logout, confirm } = useApp();
+
+  // Generate initials from the administrator's name.
+  const initials = (user?.name || 'Admin')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(name => name.charAt(0).toUpperCase())
+    .join('');
+
+  // Confirm before signing out.
   const handleSignOut = () => {
     confirm(
       'Are you sure you want to sign out of the admin dashboard?',
       () => {
         logout();
+        setOpen(false);
         navigate('/signed-out');
       }
     );
@@ -101,39 +115,95 @@ export function AdminSidebar() {
 
   return (
     <>
+      {/* Mobile sidebar toggle */}
       <button
+        type="button"
         className="mobile-menu"
         onClick={() => setOpen(!open)}
         aria-label="Toggle menu"
+        aria-expanded={open}
       >
         <Menu />
       </button>
+
       <aside className={'admin-sidebar ' + (open ? 'open' : '')}>
-        <Brand />
-        <div className="sidebar-caption">ADMINISTRATION</div>
-        {adminLinks.map(([url, label, Icon]) => (
+
+        {/* Sidebar header */}
+        <div className="admin-sidebar-header">
+          <Brand />
+          <div className="sidebar-caption">
+            ADMINISTRATION
+          </div>
+        </div>
+
+        {/* Main navigation links */}
+        <nav className="admin-sidebar-nav">
+          {adminLinks.map(([url, label, Icon]) => (
+            <NavLink
+              key={url}
+              to={url}
+              end={url === '/admin'}
+              onClick={() => setOpen(false)}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Bottom section: profile and sign out */}
+        <div className="admin-sidebar-bottom">
+
+          {/* Administrator profile */}
+
+          {/* Clickable administrator profile */}
           <NavLink
-            key={url}
-            to={url}
-            end={url === '/admin'}
+            to="/admin/profile"
+            className="admin-sidebar-profile"
             onClick={() => setOpen(false)}
+            aria-label="Open administrator profile"
           >
-            <Icon size={18} />
-            {label}
+            {/* Profile initials */}
+            <div className="admin-profile-avatar">
+              {initials}
+            </div>
+
+            {/* Profile details */}
+            <div className="admin-profile-info">
+              <strong>
+                {user?.name || 'Administrator'}
+              </strong>
+
+              <span>Administrator</span>
+            </div>
+
+            {/* Arrow */}
+            <ChevronRight
+              size={18}
+              className="admin-profile-arrow"
+            />
           </NavLink>
-        ))}
-        <button
-          type="button"
-          className="btn btn-admin-signout"
-          onClick={handleSignOut}
-        >
-          <LogOut size={18} />
-          <span>Sign Out</span>
-        </button>
+
+
+          {/* Divider between profile and sign out */}
+          <div className="admin-sidebar-divider" />
+
+          {/* Sign out button */}
+          <button
+            type="button"
+            className="btn-admin-signout"
+            onClick={handleSignOut}
+          >
+            <LogOut size={18} />
+            <span>Sign Out</span>
+          </button>
+
+        </div>
       </aside>
     </>
   );
 }
+
 
 export function PageTitle({
   title,
@@ -177,7 +247,16 @@ export function Stars({ rating }: { rating: number }) {
 }
 
 export function Status({ value }: { value: string }) {
-  return <span className={'status ' + value}>{value}</span>;
+  const statusClass = value
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, '-');
+
+  return (
+    <span className={`status ${statusClass}`}>
+      {value.replace(/[_-]/g, ' ')}
+    </span>
+  );
 }
 
 export function BottomNav() {
