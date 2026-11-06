@@ -30,6 +30,7 @@
   --color-admin-hover: #0b6355;
   --color-admin-link: #d6e7e0;
   --color-input-border: #dce4df;
+  --color-small-brand: #aca900db;
 
   /* Status colours */
   --color-success: #137247;
@@ -379,17 +380,14 @@ p {
 }
 
 .eyebrow.green {
-  color: var(--teal);
+  color: var(--color-small-brand);
 }
 
 .brand {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  text-align: left;
-  line-height: 1;
-  white-space: nowrap;
+  width: 130px;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 
@@ -404,6 +402,7 @@ p {
   letter-spacing: 0.22em;
   margin-top: 7px;
   font-weight: 700;
+  color: var(--color-small-brand);
 }
 
 .guest-nav {
@@ -1856,7 +1855,7 @@ p {
   width: 242px;
   min-width: 242px;
   height: 100dvh;
-  background: var(--green);
+  background: var(--teal);
   color: white;
   display: flex;
   flex-direction: column;

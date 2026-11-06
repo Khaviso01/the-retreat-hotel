@@ -62,7 +62,7 @@ export function ResetPassword() {
     <main className="auth-page">
       <div className="auth-card">
         <h1>The Retreat</h1>
-        <small>HOTELS & RESORTS</small>
+        <small>HOTELS & SUITES</small>
 
         {success ? (
           <>

@@ -20,12 +20,12 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import RetreatLogo from '../../../assets/the-retreat-logo.png';
 
 export function Brand() {
   return (
     <Link className="brand" to="/">
-      <span>The Retreat</span>
-      <small>HOTELS & RESORTS</small>
+      <img src={RetreatLogo} alt="The Retreat Hotel" />
     </Link>
   );
 }

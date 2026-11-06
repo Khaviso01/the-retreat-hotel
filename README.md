@@ -1,6 +1,6 @@
-# The Retreat Hotels & Resorts
+# The Retreat Hotels & SUITES
 
-The Retreat Hotels & Resorts** is a full-stack hotel booking application built with React, TypeScript, Node.js, and Express. It features a responsive guest website, an admin dashboard, Google OAuth authentication, secure Paystack payments, and hotel reservation management. The application uses Prisma ORM with PostgreSQL hosted on Neon for persistent data storage, with the frontend deployed on Vercel and the backend on Render.
+The Retreat Hotels & Suites is a full-stack hotel booking application built with React, TypeScript, Node.js, and Express. It features a responsive guest website, an admin dashboard, Google OAuth authentication, secure Paystack payments, and hotel reservation management. The application uses Prisma ORM with PostgreSQL hosted on Neon for persistent data storage, with the frontend deployed on Vercel and the backend on Render.
 
 **Live application:** https://the-retreat-hotel.vercel.app  
 **API health check:** https://the-retreat-api.onrender.com/api/health

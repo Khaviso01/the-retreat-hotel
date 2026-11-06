@@ -65,7 +65,7 @@ function Wrap({ children }: { children: React.ReactNode }) {
       {children}
       <BottomNav />
       <footer className="footer">
-        The Retreat Hotels & Resorts • South Africa • © 2026
+        The Retreat Hotels & SUITES • South Africa • © 2026
       </footer>
     </div>
   );
@@ -86,7 +86,7 @@ export function Home() {
     <Wrap>
       <section className="hero">
         <div className="hero-shade">
-          <span className="eyebrow">THE RETREAT HOTELS & RESORTS</span>
+          <span className="eyebrow">THE RETREAT HOTELS & SUITES</span>
           <h1>Find your perfect stay.</h1>
           <p>Relax. Explore. Belong. Discover exceptional stays across South Africa.</p>
         </div>
@@ -647,7 +647,7 @@ export function Bookings() {
     <Wrap>
       <main className="container section">
         <PageTitle
-          title="My Bookings"
+          title="Booking History"
           subtitle="Your upcoming and previous reservations"
         />
         {!user ? (
@@ -805,6 +805,7 @@ export function Notifications() {
  * Guest Account Dashboard.
  * Displays guest information, account shortcuts and sign-out.
  */
+
 export function Profile() {
   const { user, confirm, logout } = useApp();
   const navigate = useNavigate();
@@ -819,11 +820,6 @@ export function Profile() {
   return (
     <Wrap>
       <main className="container section profile-page">
-        <PageTitle
-          title="My Profile"
-          subtitle="Manage your account and reservations"
-        />
-
         {user ? (
           <GuestProfileDashboard
             name={user.name}
@@ -831,7 +827,10 @@ export function Profile() {
             onSignOut={handleSignOut}
           />
         ) : (
-          <div className="panel" style={{ textAlign: 'center', padding: 40 }}>
+          <div
+            className="panel"
+            style={{ textAlign: 'center', padding: 40 }}
+          >
             <h2>Welcome to The Retreat</h2>
             <p className="muted">
               Sign in to manage your bookings, favourites and account.
@@ -845,6 +844,7 @@ export function Profile() {
     </Wrap>
   );
 }
+
 
 
 /**
@@ -905,7 +905,7 @@ const [error, setError] = useState('');
       <main className="auth-page">
         <form className="auth-card" onSubmit={submit}>
           <h1>The Retreat</h1>
-          <small>HOTELS & RESORTS</small>
+          <small>HOTELS & SUITES</small>
           <h2>{signup ? 'Create Account' : 'Welcome Back'}</h2>
           <div className="auth-tabs">
             <button

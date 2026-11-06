@@ -59,7 +59,7 @@ export default function GoogleCallback() {
     <main className="auth-page">
       <div className="auth-card">
         <h1>The Retreat</h1>
-        <small>HOTELS & RESORTS</small>
+        <small>HOTELS & SUITES</small>
 
         {error ? (
           <>
