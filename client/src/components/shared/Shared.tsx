@@ -21,11 +21,18 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import RetreatLogo from '../../../assets/the-retreat-logo.png';
+import RetreatLogoWhite from '../../../assets/the-retreat-logo-white.png';
 
-export function Brand() {
+export function Brand({
+  variant = 'guest',
+}: {
+  variant?: 'guest' | 'admin';
+}) {
+  const logo = variant === 'admin' ? RetreatLogoWhite : RetreatLogo;
+
   return (
-    <Link className="brand" to="/">
-      <img src={RetreatLogo} alt="The Retreat Hotel" />
+    <Link className={`brand brand-${variant}`} to="/">
+      <img src={logo} alt="The Retreat Hotel" />
     </Link>
   );
 }
@@ -36,7 +43,7 @@ export function GuestNav() {
 
   return (
     <nav className="guest-nav">
-      <Brand />
+     <Brand variant="guest" />
 
       <div className="nav-links">
         <NavLink to="/" end>
@@ -130,7 +137,9 @@ export function AdminSidebar() {
 
         {/* Sidebar header */}
         <div className="admin-sidebar-header">
-          <Brand />
+          <Brand variant="admin" />
+          {/* Divider between profile and sign out */}
+          <div className="admin-sidebar-divider" />
           <div className="sidebar-caption">
             ADMINISTRATION
           </div>
