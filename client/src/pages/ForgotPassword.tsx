@@ -1,16 +1,18 @@
-
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
+// ForgotPassword component allows users to request a password reset link by entering their email address.
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // Handle form submission for requesting a password reset link
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    // Validate the email input to ensure it is not empty
     setLoading(true);
     setMessage("");
     setError("");
@@ -32,6 +34,7 @@ export function ForgotPassword() {
         }
       );
 
+      // Parse the response and handle errors appropriately
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -40,12 +43,14 @@ export function ForgotPassword() {
           data,
         });
 
+        // Throw an error with a message from the response or a default message
         throw new Error(
           data.error ||
           `Request failed with status ${response.status}`
         );
       }
 
+      // Set a success message indicating that a password reset link will be sent if the email exists in the system
       setMessage(
         data.message ||
         "If an account exists with this email, a password reset link will be sent."
@@ -54,6 +59,7 @@ export function ForgotPassword() {
     } catch (err) {
       console.error("Forgot password request failed:", err);
 
+      // Set an error message to inform the user that the request could not be processed
       setError(
         err instanceof Error
           ? err.message

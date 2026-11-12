@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -10,9 +9,12 @@ import {
 } from 'lucide-react';
 import { send } from '../lib/api';
 import { useApp } from '../context/AppContext';
+
+// GuestSecurity component allows users to change their password and manage security settings.
 export default function GuestSecurity() {
   const { toast } = useApp();
 
+  // State variables for form inputs and status messages
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,25 +22,30 @@ export default function GuestSecurity() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Handle form submission for changing the password
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
 
+    // Validate the current password, new password, and confirm password inputs
     if (newPassword.length < 8) {
       setError('New password must be at least 8 characters.');
       return;
     }
 
+    // Validate that the new password and confirm password fields match
     if (newPassword !== confirmPassword) {
       setError('New passwords do not match.');
       return;
     }
 
+    // Validate that the new password is different from the current password
     if (currentPassword === newPassword) {
       setError('Choose a different password.');
       return;
     }
 
+    // Prevent multiple submissions while saving
     if (saving) return;
 
     try {
@@ -50,6 +57,7 @@ export default function GuestSecurity() {
         { currentPassword, newPassword }
       );
 
+      // Clear the form fields after a successful password change
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

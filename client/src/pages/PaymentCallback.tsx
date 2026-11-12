@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { send } from '../lib/api';
 
+// PaymentResult type defines the structure of the response from the payment verification API.
 type PaymentResult = {
   success: boolean;
   bookingId: string;
@@ -10,23 +11,30 @@ type PaymentResult = {
   paymentStatus: string;
 };
 
+// PaymentCallback component handles the callback from the payment gateway
+// verifies the payment
+// and navigates to the confirmation page.
 export default function PaymentCallback() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
+  // Read the bookingId and reference from the query parameters
   const bookingId = params.get('bookingId');
   const reference = params.get('reference');
 
+  // Use a ref to ensure the verification process only runs once
   const started = useRef(false);
   const [message, setMessage] = useState(
     'Verifying your payment securely...'
   );
   const [error, setError] = useState(false);
 
+  // Use useEffect to perform the payment verification when the component mounts
   useEffect(() => {
     if (started.current) return;
     started.current = true;
 
+    // If bookingId is missing, set an error state and message
     if (!bookingId) {
       setError(true);
       setMessage(
@@ -35,6 +43,7 @@ export default function PaymentCallback() {
       return;
     }
 
+    // Define an async function to verify the payment with the server
     async function verify() {
       try {
         const result = await send<PaymentResult>(
@@ -43,10 +52,12 @@ export default function PaymentCallback() {
           { bookingId }
         );
 
+        // If the payment verification fails, throw an error to be caught below
         if (!result.success) {
           throw new Error('Payment could not be confirmed.');
         }
 
+        // If the payment is successful, update the message and navigate to the confirmation page
         setMessage('Payment successful! Opening your booking...');
 
         navigate('/confirmation/' + result.bookingId, {
@@ -62,6 +73,7 @@ export default function PaymentCallback() {
       }
     }
 
+    // Call the verify function to initiate the payment verification process
     void verify();
   }, [bookingId, reference, navigate]);
 

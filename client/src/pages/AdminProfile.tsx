@@ -17,6 +17,7 @@ import { AdminSidebar, Loading } from '../components/shared/Shared';
 
 import '../styles.css';
 
+// AdminProfile component allows administrators to view and update their personal information and account security settings.
 type Profile = {
   id: string;
   name: string;
@@ -26,17 +27,21 @@ type Profile = {
   hasPassword: boolean;
 };
 
+// AdminProfile component allows administrators to view and update their personal information and account security settings.
 export default function AdminProfile() {
   const { toast } = useApp();
 
+  // State variables for managing the administrator's profile data and loading/saving states.
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // State variables for managing the administrator's name and password form visibility.
   const [name, setName] = useState('');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
 
+  // State to manage password fields for changing the account password.
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -47,6 +52,7 @@ export default function AdminProfile() {
   useEffect(() => {
     let active = true;
 
+    // Fetch the administrator's profile data from the server and update the state accordingly.
     api<Profile>('/admin/profile')
       .then(data => {
         if (!active) return;
@@ -62,11 +68,13 @@ export default function AdminProfile() {
         if (active) setLoading(false);
       });
 
+      // Cleanup function to prevent state updates if the component is unmounted before the API call completes.
     return () => {
       active = false;
     };
   }, []);
 
+  // Compute the initials for the administrator's avatar based on their name.
   const initials = (profile?.name || 'Admin')
     .trim()
     .split(/\s+/)
@@ -79,6 +87,7 @@ export default function AdminProfile() {
     e.preventDefault();
     if (!profile || saving) return;
 
+    // Validate the name input to ensure it meets the minimum length requirement.
     setSaving(true);
 
     try {
@@ -88,6 +97,7 @@ export default function AdminProfile() {
         { name: name.trim(), email: profile.email }
       );
 
+      // Update the profile state with the new information and display a success message.
       setProfile(prev => prev ? { ...prev, ...updated } : prev);
       toast('Profile updated successfully.');
     } catch (err) {
@@ -101,16 +111,19 @@ export default function AdminProfile() {
   const handleChangePassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Validate that the new password and confirm password fields match.
     if (passwords.newPassword !== passwords.confirmPassword) {
       toast('New passwords do not match.');
       return;
     }
 
+    // Validate that the new password meets the minimum length requirement.
     if (passwords.newPassword.length < 8) {
       toast('Password must contain at least 8 characters.');
       return;
     }
 
+    // Prevent multiple submissions while saving.
     setSaving(true);
 
     try {
@@ -123,6 +136,7 @@ export default function AdminProfile() {
         }
       );
 
+      // Clear the password fields and hide the password form after a successful password change.
       toast('Password changed successfully.');
       setPasswords({
         currentPassword: '',

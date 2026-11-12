@@ -3,18 +3,17 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
-/**
- * Handles the redirect after Google authentication.
- * Exchanges the temporary login code for a user session.
- */
+// GoogleCallback component handles the callback from Google's OAuth2 login flow
 export default function GoogleCallback() {
   const { googleLogin, toast } = useApp();
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
+  // State variables for error handling and preventing duplicate code exchanges
   const [error, setError] = useState('');
   const started = useRef(false);
 
+  // Read the code and next parameters from the query string
   const code = params.get('code');
   const next = params.get('next');
 
@@ -46,6 +45,8 @@ export default function GoogleCallback() {
           { replace: true }
         );
       })
+
+      // Handle errors during the Google login process.
       .catch((err) => {
         setError(
           err instanceof Error

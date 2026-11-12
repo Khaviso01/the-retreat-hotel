@@ -6,11 +6,14 @@ import { BookingStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { prisma } from '../services/prisma.js';
 import { requireAuth, type AuthRequest } from '../middleware/auth.js';
 
+// Create an Express router for booking management.
 const router = Router();
 
+// Constants for date calculations and service fees.
 const DAY_MS = 86_400_000;
 const SERVICE_FEE = 150;
 
+// Custom error class for booking cancellation conflicts.
 class BookingCancellationError extends Error {
   constructor(
     message: string,
@@ -29,6 +32,7 @@ const bookingSchema = z.object({
   guests: z.number().int().min(1)
 });
 
+// Validate booking status updates from the frontend.
 const statusSchema = z.object({
   status: z.enum(['pending', 'confirmed', 'cancelled'])
 });
@@ -71,6 +75,7 @@ function parseDate(value: string): Date | null {
     return null;
   }
 
+  // Create a Date object in UTC to avoid timezone issues.
   const date = new Date(`${value}T00:00:00.000Z`);
 
   if (
@@ -114,9 +119,11 @@ router.post(
   asyncRoute(async (req, res) => {
     const values = bookingSchema.parse(req.body);
 
+    // Validate check-in and check-out dates, ensuring they are in the correct format and logical order.
     const checkIn = parseDate(values.checkIn);
     const checkOut = parseDate(values.checkOut);
 
+    // If either date is invalid, respond with a 400 error indicating the expected format.
     if (!checkIn || !checkOut) {
       res.status(400).json({
         error: 'Dates must use YYYY-MM-DD format.'
@@ -124,6 +131,7 @@ router.post(
       return;
     }
 
+    // Ensure that the check-in date is not in the past and that the check-out date is after the check-in date.
     const today = new Date().toISOString().slice(0, 10);
 
     if (values.checkIn < today) {
@@ -133,6 +141,7 @@ router.post(
       return;
     }
 
+    // Calculate the number of nights for the booking and ensure that the check-out date is after the check-in date.
     const nights =
       (checkOut.getTime() - checkIn.getTime()) / DAY_MS;
 

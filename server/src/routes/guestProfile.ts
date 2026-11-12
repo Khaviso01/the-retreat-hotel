@@ -5,13 +5,13 @@ import {
 } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-
 import { prisma } from '../services/prisma.js';
 import {
   requireAuth,
   type AuthRequest,
 } from '../middleware/auth.js';
 
+// Initialize the Express router for guest profile management.
 const router = Router();
 
 

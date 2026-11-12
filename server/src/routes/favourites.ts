@@ -4,7 +4,6 @@ import {
   type Response,
   type NextFunction
 } from 'express';
-
 import { prisma } from '../services/prisma.js';
 import {
   requireAuth,

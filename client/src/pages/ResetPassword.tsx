@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, LockKeyhole } from 'lucide-react';
 import { send } from '../lib/api';
 
+// ResetPassword component allows users to reset their password using a token from the email link.
 export function ResetPassword() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -11,31 +12,37 @@ export function ResetPassword() {
   // Read the reset token from the email link
   const token = params.get('token');
 
+  // State variables for form inputs and status messages
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  // Handle form submission for password reset
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
+    // Validate the token and password inputs
     if (!token) {
       setError('Invalid password reset link.');
       return;
     }
 
+    // Validate password length and match
     if (password.length < 8) {
       setError('Password must contain at least 8 characters.');
       return;
     }
 
+    // Validate that the password and confirm password fields match
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
 
+    // Proceed with sending the password reset request to the server
     setLoading(true);
 
     try {

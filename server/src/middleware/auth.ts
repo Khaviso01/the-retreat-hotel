@@ -1,13 +1,10 @@
-
 import type {
   Request,
   Response,
   NextFunction
 } from 'express';
-
 import jwt, { type JwtPayload } from 'jsonwebtoken';
 import { Role } from '@prisma/client';
-
 import { JWT_SECRET } from '../config/env.js';
 import { prisma } from '../services/prisma.js';
 import type { User } from '../models/types.js';
@@ -42,6 +39,7 @@ export async function requireAuth(
   try {
     const authorization = req.headers.authorization;
 
+    // Check for the presence of a Bearer token in the Authorization header.
     if (!authorization?.startsWith('Bearer ')) {
       res.status(401).json({
         error: 'Please sign in first.'
@@ -57,6 +55,7 @@ export async function requireAuth(
       JWT_SECRET
     ) as JwtPayload;
 
+    // Ensure the token contains a valid user ID in the "sub" claim.
     if (
       typeof decoded.sub !== 'string' ||
       !decoded.sub
@@ -78,6 +77,7 @@ export async function requireAuth(
       }
     });
 
+    // If the user no longer exists, respond with an error.
     if (!user) {
       res.status(401).json({
         error: 'Your account no longer exists.'
@@ -91,6 +91,7 @@ export async function requireAuth(
       role: user.role === Role.ADMIN ? 'admin' : 'guest'
     };
 
+    // Proceed to the next middleware or route handler. 
     next();
   } catch (error) {
     if (

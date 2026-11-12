@@ -652,8 +652,7 @@ export function RevenueChart({
     };
   });
 
-  // Determine the highest booking count for bar scaling.
-  const max = Math.max(
+const max = Math.max(
     1,
     ...months.map((month) => month.count)
   );

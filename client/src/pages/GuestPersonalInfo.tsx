@@ -5,21 +5,26 @@ import { ArrowLeft, Mail, Save, UserRound } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { send, type User } from '../lib/api';
 
+// GuestPersonalInfo component allows users to update their personal information, such as name and email.
 export default function GuestPersonalInfo() {
   const { user, setUser, toast } = useApp();
 
+  // State variables for form inputs and status messages
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Use useEffect to update the name state when the user object changes
   useEffect(() => {
     setName(user?.name ?? '');
   }, [user?.name]);
 
+  // Handle form submission for updating personal information
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
 
+    // Validate the name input to ensure it meets the minimum length requirement
     const trimmedName = name.trim();
 
     if (trimmedName.length < 2) {
@@ -29,6 +34,7 @@ export default function GuestPersonalInfo() {
 
     if (!user || saving) return;
 
+    // Proceed with sending the update request to the server
     try {
       setSaving(true);
 

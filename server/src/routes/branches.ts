@@ -5,10 +5,7 @@ import { prisma } from '../services/prisma.js';
 // Initialize the Express router for hotel branches.
 const router = Router();
 
-/**
- * Calculate a hotel's average rating using actual guest reviews.
- * A branch without reviews is considered not yet rated.
- */
+// Helper function to calculate the average rating and review count for a hotel branch.
 function calculateBranchRating<
   T extends {
     reviews: { rating: number }[];
@@ -17,13 +14,16 @@ function calculateBranchRating<
 >(branch: T) {
   const { reviews, _count, ...details } = branch;
 
+  // Calculate the total number of reviews for the branch.
   const reviewCount = _count.reviews;
 
+  // Calculate the total rating by summing all individual review ratings.
   const totalRating = reviews.reduce(
     (sum, review) => sum + review.rating,
     0
   );
 
+  // Calculate the average rating, rounded to one decimal place. If there are no reviews, the rating is set to 0.
   const rating =
     reviewCount > 0
       ? Number((totalRating / reviewCount).toFixed(1))

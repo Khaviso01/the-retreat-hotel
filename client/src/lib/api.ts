@@ -1,3 +1,4 @@
+// Type definitions for the application's data models
 export type User = {
   id: string;
   name: string;
@@ -5,6 +6,7 @@ export type User = {
   role: 'guest' | 'admin';
 };
 
+// Type definitions for the application's data models
 export type Branch = {
   id: string;
   name: string;
@@ -19,7 +21,7 @@ export type Branch = {
   cancellationHours: number;
 };
 
-
+// Type definitions for the application's data models
 export type Room = {
   id: string;
   branchId: string;
@@ -32,6 +34,7 @@ export type Room = {
   description: string;
 };
 
+// Type definitions for the application's data models
 export type Booking = {
   id: string;
   userId: string;
@@ -47,6 +50,7 @@ export type Booking = {
   createdAt: string;
 };
 
+// Type definitions for the application's data models
 export type Review = {
   id: string;
   rating: number;
@@ -60,6 +64,7 @@ export type Review = {
   };
 };
 
+// Type definitions for the application's data models
 export type Notice = {
   id: string;
   userId: string;
@@ -69,6 +74,7 @@ export type Notice = {
   createdAt: string;
 };
 
+// Type definitions for the application's data models
 export type Stats = {
   bookings: number;
   revenue: number;
@@ -79,15 +85,10 @@ export type Stats = {
 };
 
 
-/**
- * Formats a numerical amount into a South African Rand (ZAR) currency string.
- */
+// Utility function to format a number as South African Rand currency
 export const money = (amount: number) => 'R' + amount.toLocaleString('en-ZA');
 
-/**
- * Generic API fetch client configured with automatic JWT bearer token header injection
- * and robust error parsing for backend responses.
- */
+// Utility function to format a date string into a more readable format
 export const api = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   const token = localStorage.getItem('retreat_token');
   const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -99,14 +100,14 @@ export const api = async <T>(path: string, options: RequestInit = {}): Promise<T
       ...options.headers,
     },
   });
+
+  // Handle the response and throw an error if the request was not successful
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Something went wrong.');
   return data as T;
 };
 
-/**
- * Helper wrapper for sending HTTP mutation requests (POST, PATCH, DELETE, PUT) with optional JSON bodies.
- */
+// Utility function to send an API request with a specified HTTP method and optional body
 export const send = <T>(path: string, method: string, body?: unknown) =>
   api<T>(path, {
     method,

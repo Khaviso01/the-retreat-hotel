@@ -154,6 +154,7 @@ router.get(
       return;
     }
 
+    // Return the authenticated user's public profile and a new JWT for continued access.
     res.json(publicUser(toAppUser(found)));
   })
 );
@@ -421,7 +422,7 @@ router.post('/forgot-password', asyncHandler(async (req, res) => {
   res.json({ message });
 }));
 
-
+// Validate the reset token and new password.
 const resetPasswordSchema = z.object({
   token: z.string().regex(/^[a-f0-9]{64}$/),
   password: z.string().min(8)
@@ -447,6 +448,7 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
     return;
   }
 
+  // Hash the new password before storing it in PostgreSQL.
   const passwordHash = await bcrypt.hash(password, 12);
 
   try {

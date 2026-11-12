@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
-import { api, send, money, type Branch, type Room, type Booking, type Notice, type Review
+import {
+  api, send, money, type Branch, type Room, type Booking, type Notice, type Review
 } from '../lib/api';
 import { useApp } from '../context/AppContext';
 import {
@@ -31,13 +32,14 @@ import {
 import { GuestProfileDashboard } from '../components/guest/GuestProfileDashboard';
 import '../styles.css';
 
-/**
- * Custom data-fetching hook for guest portal endpoints.
- */
+// GuestPages.tsx contains the main page components for the guest-facing part of the application
+// including home, branches, hotel details, checkout, booking confirmation, bookings list, booking details, favourites, and notifications. 
+// Each component fetches necessary data from the API and renders the appropriate UI elements.
 function useData<T>(url: string) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState('');
 
+  // Use useEffect to fetch data from the API when the component mounts or when the URL changes
   useEffect(() => {
     let active = true;
     api<T>(url)
@@ -52,12 +54,11 @@ function useData<T>(url: string) {
     };
   }, [url]);
 
+  // Return the fetched data, any error message, and a reload function to refetch the data
   return { data, error, reload: () => api<T>(url).then(setData) };
 }
 
-/**
- * Standard container wrapper including top navigation, main content slot, bottom navigation, and global footer.
- */
+// Wrap component provides a consistent layout for guest pages, including navigation and footer.
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
     <div className="guest-app">
@@ -71,17 +72,17 @@ function Wrap({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * Guest Landing Home Page View.
- */
+// PageTitle component displays the title and optional subtitle for each page, along with an optional action element.
 export function Home() {
   const { data: branches } = useData<Branch[]>('/branches');
 
+  // Fetch guest reviews to display on the home page
   const {
-  data: reviews,
-  error: reviewsError,
-} = useData<Review[]>('/reviews');
+    data: reviews,
+    error: reviewsError,
+  } = useData<Review[]>('/reviews');
 
+  // Render the home page with a hero section, search widget, branch listings, promotional content, and guest reviews.
   return (
     <Wrap>
       <section className="hero">
@@ -118,75 +119,74 @@ export function Home() {
       </section>
 
 
-{/* Guest reviews displayed on the landing page */}
-<section className="container section home-reviews">
-  <div className="section-heading">
-    <div>
-      <span className="eyebrow green">GUEST EXPERIENCES</span>
-      <h2>What Our Guests Say</h2>
-    </div>
-
-    <Link to="/reviews">View all reviews →</Link>
-  </div>
-
-  {reviewsError ? (
-    <p className="muted">Unable to load reviews right now.</p>
-  ) : reviews === null ? (
-    <Loading />
-  ) : reviews.length > 0 ? (
-    <div className="home-review-grid">
-      {reviews.slice(0, 3).map((review) => (
-        <article className="panel home-review-card" key={review.id}>
-          <Stars rating={review.rating} />
-
-          <p className="home-review-text">
-            "{review.text}"
-          </p>
-
-          <div className="home-review-author">
-            <strong>{review.user?.name ?? 'Guest'}</strong>
-
-            {review.branch?.name && (
-              <span className="muted">
-                {review.branch.name}
-              </span>
-            )}
-
-            {review.createdAt && (
-              <small className="muted">
-                {new Date(review.createdAt).toLocaleDateString('en-ZA', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </small>
-            )}
+      {/* Guest reviews displayed on the landing page */}
+      <section className="container section home-reviews">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow green">GUEST EXPERIENCES</span>
+            <h2>What Our Guests Say</h2>
           </div>
-        </article>
-      ))}
-    </div>
-  ) : (
-    <p className="muted">
-      No guest reviews yet. Be the first to share your experience!
-    </p>
-  )}
-</section>
+
+          <Link to="/reviews">View all reviews →</Link>
+        </div>
+
+        {reviewsError ? (
+          <p className="muted">Unable to load reviews right now.</p>
+        ) : reviews === null ? (
+          <Loading />
+        ) : reviews.length > 0 ? (
+          <div className="home-review-grid">
+            {reviews.slice(0, 3).map((review) => (
+              <article className="panel home-review-card" key={review.id}>
+                <Stars rating={review.rating} />
+
+                <p className="home-review-text">
+                  "{review.text}"
+                </p>
+
+                <div className="home-review-author">
+                  <strong>{review.user?.name ?? 'Guest'}</strong>
+
+                  {review.branch?.name && (
+                    <span className="muted">
+                      {review.branch.name}
+                    </span>
+                  )}
+
+                  {review.createdAt && (
+                    <small className="muted">
+                      {new Date(review.createdAt).toLocaleDateString('en-ZA', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </small>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">
+            No guest reviews yet. Be the first to share your experience!
+          </p>
+        )}
+      </section>
 
     </Wrap>
   );
 }
 
-/**
- * Branch Listing & Filter Search Page View.
- */
-
+// Branches component displays a list of available branches with filtering options.
 export function Branches() {
   const [params] = useSearchParams();
   const { data: branches } = useData<Branch[]>('/branches');
 
+  // Extract search parameters for filtering branches based on city and branch ID
   const city = params.get('city') || '';
   const branchId = params.get('branch') || '';
 
+  // Determine if any room filters are applied based on the search parameters
   const searchQuery = params.toString();
   const hasRoomFilters = [
     'minPrice',
@@ -198,12 +198,14 @@ export function Branches() {
     'sort'
   ].some(key => params.has(key) && params.get(key) !== '');
 
+  // State to hold the list of matching rooms based on the applied filters
   const [matchingRooms, setMatchingRooms] = useState<
     (Room & { branch: Branch })[]
   >([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  // Use useEffect to fetch matching rooms from the API whenever the search query or filters change
   useEffect(() => {
     if (!hasRoomFilters) {
       setMatchingRooms([]);
@@ -212,6 +214,7 @@ export function Branches() {
       return;
     }
 
+    // Use a flag to prevent state updates if the component unmounts before the API call completes
     let active = true;
 
     const query = new URLSearchParams();
@@ -219,6 +222,7 @@ export function Branches() {
     // The backend searches location by city, name or address.
     if (city) query.set('location', city);
 
+    // Include any room-related filters in the query parameters for the API request
     for (const key of [
       'minPrice',
       'maxPrice',
@@ -232,9 +236,11 @@ export function Branches() {
       if (value) query.set(key, value);
     }
 
+    // Start the search process and reset any previous error messages
     setSearching(true);
     setSearchError('');
 
+    // Fetch matching rooms from the API based on the constructed query parameters
     api<{
       count: number;
       rooms: (Room & { branch: Branch })[];
@@ -245,6 +251,7 @@ export function Branches() {
           setSearching(false);
         }
       })
+      // Handle any errors that occur during the API request and update the state accordingly
       .catch(error => {
         if (active) {
           setSearchError(
@@ -254,15 +261,18 @@ export function Branches() {
         }
       });
 
+    // Cleanup function to set the active flag to false when the component unmounts
     return () => {
       active = false;
     };
   }, [searchQuery, hasRoomFilters, city]);
 
+  // Filter the branches based on the selected city, branch ID, and any matching rooms from the search results
   const filtered = branches?.filter(b => {
     if (city && b.city !== city) return false;
     if (branchId && b.id !== branchId) return false;
 
+    // If room filters are applied, only include branches that have matching rooms
     if (hasRoomFilters) {
       return matchingRooms.some(room => room.branchId === b.id);
     }
@@ -309,9 +319,7 @@ export function Branches() {
 }
 
 
-/**
- * Individual Hotel Branch Details & Room Selection Page View.
- */
+// Hotel Details component displays the details of a specific hotel branch and its available rooms.
 export function HotelDetails() {
   const { id } = useParams();
   const { data: b } = useData<Branch>('/branches/' + id);
@@ -397,34 +405,34 @@ export function HotelDetails() {
   );
 }
 
-/**
- * Room Reservation Checkout & Booking Form Page View.
- */
-
+// Checkout component handles the booking process, including selecting check-in/check-out dates, number of guests, and initiating payment through Paystack.
 export function Checkout() {
   const { id } = useParams();
   const { data: room } = useData<Room>('/rooms/' + id);
   const { user, toast } = useApp();
   const navigate = useNavigate();
 
+  // State variables to manage user input for check-in/check-out dates, number of guests, and loading state during the booking process
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
   const [busy, setBusy] = useState(false);
 
-  // Keep a created booking so a failed payment initialization
-  // doesn't create a second reservation on retry.
+  // State to hold the pending booking ID, which is used to track the booking process before payment is completed
   const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
 
+  // Handle form submission for the checkout process, including creating a booking and initializing payment through Paystack
   const submit = async (e: FormEvent) => {
     e.preventDefault();
 
+    // If the user is not logged in, redirect them to the login page with a next parameter to return to the checkout page after login
     if (!user) {
       toast('Sign in to complete your booking.');
       navigate('/login?next=' + encodeURIComponent('/checkout/' + id));
       return;
     }
 
+    // Prevent multiple submissions while the booking process is in progress
     if (busy) return;
 
     setBusy(true);
@@ -454,6 +462,7 @@ export function Checkout() {
         bookingId,
       });
 
+      // Ensure that the authorization URL is returned from the backend before redirecting to Paystack
       if (!payment.authorizationUrl) {
         throw new Error('Paystack did not return a payment URL.');
       }
@@ -553,10 +562,7 @@ export function Checkout() {
 }
 
 
-/**
- * Booking Submission Confirmation Screen.
- */
-
+// Booking Confirmation component displays the details of a completed booking after successful payment.
 export function Confirmation() {
   const { id } = useParams();
   const { data: booking } = useData<Booking>(
@@ -574,6 +580,7 @@ export function Confirmation() {
     );
   }
 
+  // Determine the booking status to display appropriate messages and actions
   const paid = booking.paymentStatus === 'success';
   const confirmed = booking.status === 'confirmed';
   const cancelled = booking.status === 'cancelled';
@@ -634,10 +641,7 @@ export function Confirmation() {
   );
 }
 
-
-/**
- * Guest Reservations List Page View.
- */
+// Guest Bookings List Page View
 export function Bookings() {
   const { user } = useApp();
   const { data: bookings } = useData<Booking[]>('/bookings');
@@ -670,15 +674,14 @@ export function Bookings() {
   );
 }
 
-/**
- * Individual Reservation Details View.
- */
+// Booking Details Page View
 export function BookingDetails() {
   const { id } = useParams();
   const { data: b, reload } = useData<Booking>('/bookings/' + id);
   const { data: rooms } = useData<Room[]>('/rooms');
   const { confirm, toast } = useApp();
 
+  // Find the room associated with the booking to display its details
   const room = rooms?.find((r) => r.id === b?.roomId);
 
   return (
@@ -733,9 +736,8 @@ export function BookingDetails() {
   );
 }
 
-/**
- * Saved Favourites List Page View.
- */
+// Payment Callback component handles the response from Paystack after a payment attempt
+// verifying the payment status and navigating to the confirmation page if successful.
 export function Favourites() {
   const { user } = useApp();
   const { data } = useData<Branch[]>('/favourites');
@@ -759,9 +761,7 @@ export function Favourites() {
   );
 }
 
-/**
- * User Notifications Feed Page View.
- */
+// Notifications component displays the user's latest booking updates and allows them to mark notifications as read.
 export function Notifications() {
   const { user, toast } = useApp();
   const { data, reload } = useData<Notice[]>('/notifications');
@@ -801,15 +801,12 @@ export function Notifications() {
 }
 
 
-/**
- * Guest Account Dashboard.
- * Displays guest information, account shortcuts and sign-out.
- */
-
+// Profile component displays the user's profile information and provides an option to sign out.
 export function Profile() {
   const { user, confirm, logout } = useApp();
   const navigate = useNavigate();
 
+  // Handle the sign-out process by confirming with the user and logging them out if they agree.
   const handleSignOut = () => {
     confirm('Are you sure you want to sign out?', () => {
       logout();
@@ -847,34 +844,36 @@ export function Profile() {
 
 
 
-/**
- * Guest Authentication (Login / Signup) Form Page View.
- */
+// Login component handles user authentication, allowing users to log in or sign up for an account.
+// It includes form validation, error handling, and integration with Google OAuth for social login.
 export function Login() {
   const { login, register, toast } = useApp();
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
+  // State variables to manage the form state, user input, and error messages for login and sign-up.
   const [signup, setSignup] = useState(false);
-const [name, setName] = useState('');
-const [email, setEmail] = useState('');
-const [password, setPassword] = useState('');
-const [confirmPassword, setConfirmPassword] = useState('');
-const [showPassword, setShowPassword] = useState(false);
-const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const [error, setError] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
 
+  // Handle form submission for login or sign-up, including validation and navigation after successful authentication.
   const submit = async (e: FormEvent) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  // Validate passwords only during Sign Up
-  if (signup && password !== confirmPassword) {
-    setError('Passwords do not match.');
-    return;
-  }
+    // Validate passwords only during Sign Up
+    if (signup && password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
 
-  try {
+    // Prevent multiple submissions while the authentication process is in progress
+    try {
       const u = signup
         ? await register(name, email, password)
         : await login(email, password);
@@ -889,13 +888,16 @@ const [error, setError] = useState('');
     }
   };
 
+  // Handle Google OAuth login by redirecting the user to the backend's Google authentication endpoint with a callback URL.
   const handleGoogleLogin = () => {
     const next = params.get('next') || '/signin-success';
 
+    // Construct a callback URL with the next parameter to redirect the user after successful Google authentication
     const callback = new URLSearchParams({
       next,
     });
 
+    // Redirect the user to the backend's Google authentication endpoint with the callback URL
     window.location.href =
       `${import.meta.env.VITE_API_URL}/auth/google?${callback.toString()}`;
   };
@@ -971,42 +973,42 @@ const [error, setError] = useState('');
           </label>
 
 
-{/* Confirm Password - Sign Up only */}
-{signup && (
-  <label>
-    Confirm Password
+          {/* Confirm Password - Sign Up only */}
+          {signup && (
+            <label>
+              Confirm Password
 
-    <div className="password-input-wrapper">
-      <input
-        type={showConfirmPassword ? 'text' : 'password'}
-        required
-        minLength={8}
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        autoComplete="new-password"
-        placeholder="Confirm your password"
-      />
+              <div className="password-input-wrapper">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="Confirm your password"
+                />
 
-      <button
-        type="button"
-        className="password-toggle"
-        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-        aria-label={
-          showConfirmPassword
-            ? 'Hide confirm password'
-            : 'Show confirm password'
-        }
-        aria-pressed={showConfirmPassword}
-      >
-        {showConfirmPassword ? (
-          <EyeOff size={20} />
-        ) : (
-          <Eye size={20} />
-        )}
-      </button>
-    </div>
-  </label>
-)}
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={
+                    showConfirmPassword
+                      ? 'Hide confirm password'
+                      : 'Show confirm password'
+                  }
+                  aria-pressed={showConfirmPassword}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
+            </label>
+          )}
 
 
 
@@ -1046,9 +1048,8 @@ const [error, setError] = useState('');
   );
 }
 
-/**
- * Authentication Action Success View.
- */
+// AuthSuccess component displays a success message after the user has successfully signed in or signed out
+// along with a link to continue to the profile page or return to the home page.
 export function AuthSuccess({ signedOut = false }: { signedOut?: boolean }) {
   return (
     <Wrap>
@@ -1072,14 +1073,13 @@ export function AuthSuccess({ signedOut = false }: { signedOut?: boolean }) {
   );
 }
 
-/**
- * Hotel Reviews Feed & Submission View.
- */
+// Guest Reviews component allows users to submit reviews for hotels and displays a list of existing reviews.
 export function Reviews() {
   const { data, reload } = useData<Review[]>('/reviews');
   const { user, toast } = useApp();
   const { data: branches } = useData<Branch[]>('/branches');
 
+  // State variables to manage the selected branch, rating, and review text for submitting a new review
   const [branchId, setBranchId] = useState('cape-town');
   const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
@@ -1099,10 +1099,10 @@ export function Reviews() {
                 return;
               }
               try {
-               await send('/reviews', 'POST', { branchId, rating, text });
-toast('Review submitted!');
-setText('');
-await reload();
+                await send('/reviews', 'POST', { branchId, rating, text });
+                toast('Review submitted!');
+                setText('');
+                await reload();
               } catch (e) {
                 toast((e as Error).message);
               }

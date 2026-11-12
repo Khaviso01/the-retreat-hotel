@@ -3,11 +3,14 @@ import { Router } from 'express';
 import { BookingStatus, Prisma } from '@prisma/client';
 import { prisma } from '../services/prisma.js';
 
+// Initialize the Express router for accommodation search functionality.
 const router = Router();
 
+// Helper function to safely convert query parameters to strings, trimming whitespace and handling non-string values.
 const stringParam = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
 
+// GET /api/search
 router.get('/', async (req, res) => {
   try {
     const {
@@ -23,6 +26,7 @@ router.get('/', async (req, res) => {
       sort
     } = req.query;
 
+    // Validate and process query parameters for accommodation search.
     const locationValue = stringParam(location);
     const branchId = stringParam(branch);
     const typeValue = stringParam(roomType);
@@ -31,12 +35,14 @@ router.get('/', async (req, res) => {
       .map(value => value.trim())
       .filter(Boolean);
 
+    // Validate and process numerical and date query parameters for accommodation search.
     const min = stringParam(minPrice);
     const max = stringParam(maxPrice);
     const guestCount = stringParam(guests);
     const start = stringParam(checkIn);
     const end = stringParam(checkOut);
 
+    // Validate the numerical and date query parameters to ensure they are within acceptable ranges and formats.
     if (
       (min && (!Number.isFinite(Number(min)) || Number(min) < 0)) ||
       (max && (!Number.isFinite(Number(max)) || Number(max) < 0)) ||
@@ -47,6 +53,7 @@ router.get('/', async (req, res) => {
       return;
     }
 
+    // Validate that the minimum price does not exceed the maximum price for accommodation search.
     if (min && max && Number(min) > Number(max)) {
       res.status(400).json({
         error: 'Minimum price cannot exceed maximum price.'
@@ -54,6 +61,7 @@ router.get('/', async (req, res) => {
       return;
     }
 
+    // Validate that both check-in and check-out dates are provided together for accommodation search.
     if (Boolean(start) !== Boolean(end)) {
       res.status(400).json({
         error: 'Both check-in and check-out dates are required.'
@@ -61,6 +69,7 @@ router.get('/', async (req, res) => {
       return;
     }
 
+    // Validate the check-in and check-out dates to ensure they are in the correct format and logical order for accommodation search.
     let dateFilter: Prisma.BookingWhereInput | undefined;
 
     if (start && end) {
