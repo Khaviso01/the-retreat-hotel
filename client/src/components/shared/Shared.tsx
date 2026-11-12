@@ -46,29 +46,25 @@ export function GuestNav() {
      <Brand variant="guest" />
 
       <div className="nav-links">
-        <NavLink to="/" end>
+        <NavLink to="/" end title="Home">
           <House size={18} />
-          <span>Home</span>
         </NavLink>
 
-        <NavLink to="/branches">
+        <NavLink to="/branches" title="Branches">
           <Building2 size={18} />
-          <span>Our Branches</span>
         </NavLink>
 
-        <NavLink to="/bookings">
+        <NavLink to="/bookings" title="Bookings">
           <CalendarDays size={18} />
-          <span>My Bookings</span>
+
         </NavLink>
 
-        <NavLink to="/favourites">
+        <NavLink to="/favourites" title="Favourites">
           <Heart size={18} />
-          <span>Favourites</span>
         </NavLink>
 
-        <NavLink to="/notifications">
+        <NavLink to="/notifications" title="Notifications">
           <Bell size={18} />
-          <span>Notifications</span>
         </NavLink>
 
         <NavLink to={user ? '/profile' : '/login'}>
@@ -91,7 +87,6 @@ const adminLinks = [
   ['/admin/reports', 'Reports', ClipboardList],
   ['/admin/settings', 'Settings', Settings],
 ] as const;
-
 
 export function AdminSidebar() {
   const [open, setOpen] = React.useState(false);

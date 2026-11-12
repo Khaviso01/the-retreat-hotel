@@ -51,7 +51,6 @@ async function paystackRequest<T>(
     }
   );
 
-//
   const result =
     (await response.json()) as PaystackResponse<T>;
 

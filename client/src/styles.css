@@ -440,7 +440,7 @@ p {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: var(--space-7);
+  gap: var(--space-14);
 }
 
 .nav-links a {
@@ -2783,7 +2783,7 @@ p {
     grid-template-columns: 1fr;
   }
   .nav-links {
-    gap: 12px;
+    gap: var(--space-14);
   }
 }
 

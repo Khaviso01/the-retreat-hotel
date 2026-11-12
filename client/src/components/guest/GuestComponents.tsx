@@ -211,14 +211,11 @@ export function SearchWidget({ branches }: { branches: Branch[] }) {
       {error && <p role="alert">{error}</p>}
 
       <button className="btn" type="submit">
-        <Search size={17} /> Find Hotels
+        <Search size={17} /> Find Rooms
       </button>
     </form>
   );
 }
-
-
-// Guest component 2: photographic branch card.
 
 // Guest component 2: photographic branch card.
 export function BranchCard({ branch }: { branch: Branch }) {
