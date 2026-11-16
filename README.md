@@ -11,7 +11,6 @@ The Retreat Hotels & Suites is a responsive hotel reservation platform built wit
 
 ![The Retreat application preview](client/assets/the-retreat-preview.png)
 
-> The Retreat's updated visual identity uses an elegant black logo with a transparent background. Add the final logo asset to your project and reference its actual path wherever the brand appears. The preview above retains the path documented in the original README.
 
 ## Tech stack
 
