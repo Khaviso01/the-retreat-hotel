@@ -31,13 +31,13 @@ export default function GoogleCallback() {
     // Exchange the temporary code for a JWT and user.
     googleLogin(code)
       .then((user) => {
-        toast('Successfully signed in with Google!');
+        toast('Successfully signed in!');
 
         // Only allow internal application redirects.
         const safeNext =
           next?.startsWith('/') && !next.startsWith('//')
             ? next
-            : '/signin-success';
+            : '/';
 
         // Redirect based on the authenticated user's role.
         navigate(

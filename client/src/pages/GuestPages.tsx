@@ -178,34 +178,34 @@ export function Home() {
 }
 
 // Branches component displays a list of available branches with filtering options.
+
 export function Branches() {
   const [params] = useSearchParams();
   const { data: branches } = useData<Branch[]>('/branches');
+  const navigate = useNavigate();
 
-  // Extract search parameters for filtering branches based on city and branch ID
   const city = params.get('city') || '';
   const branchId = params.get('branch') || '';
-
-  // Determine if any room filters are applied based on the search parameters
   const searchQuery = params.toString();
+
+  // Determine whether the guest has submitted a room search.
   const hasRoomFilters = [
+    'city',
+    'branch',
     'minPrice',
     'maxPrice',
     'roomType',
     'guests',
     'checkIn',
     'checkOut',
-    'sort'
   ].some(key => params.has(key) && params.get(key) !== '');
 
-  // State to hold the list of matching rooms based on the applied filters
   const [matchingRooms, setMatchingRooms] = useState<
     (Room & { branch: Branch })[]
   >([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // Use useEffect to fetch matching rooms from the API whenever the search query or filters change
   useEffect(() => {
     if (!hasRoomFilters) {
       setMatchingRooms([]);
@@ -214,15 +214,14 @@ export function Branches() {
       return;
     }
 
-    // Use a flag to prevent state updates if the component unmounts before the API call completes
     let active = true;
-
     const query = new URLSearchParams();
 
-    // The backend searches location by city, name or address.
+    // Send the selected city and hotel to the backend.
     if (city) query.set('location', city);
+    if (branchId) query.set('branch', branchId);
 
-    // Include any room-related filters in the query parameters for the API request
+    // Send the remaining room filters.
     for (const key of [
       'minPrice',
       'maxPrice',
@@ -230,17 +229,15 @@ export function Branches() {
       'guests',
       'checkIn',
       'checkOut',
-      'sort'
+      'sort',
     ]) {
       const value = params.get(key);
       if (value) query.set(key, value);
     }
 
-    // Start the search process and reset any previous error messages
     setSearching(true);
     setSearchError('');
 
-    // Fetch matching rooms from the API based on the constructed query parameters
     api<{
       count: number;
       rooms: (Room & { branch: Branch })[];
@@ -251,43 +248,30 @@ export function Branches() {
           setSearching(false);
         }
       })
-      // Handle any errors that occur during the API request and update the state accordingly
       .catch(error => {
         if (active) {
           setSearchError(
-            error instanceof Error ? error.message : 'Search failed.'
+            error instanceof Error
+              ? error.message
+              : 'Unable to find available rooms.'
           );
           setSearching(false);
         }
       });
 
-    // Cleanup function to set the active flag to false when the component unmounts
     return () => {
       active = false;
     };
-  }, [searchQuery, hasRoomFilters, city]);
-
-  // Filter the branches based on the selected city, branch ID, and any matching rooms from the search results
-  const filtered = branches?.filter(b => {
-    if (city && b.city !== city) return false;
-    if (branchId && b.id !== branchId) return false;
-
-    // If room filters are applied, only include branches that have matching rooms
-    if (hasRoomFilters) {
-      return matchingRooms.some(room => room.branchId === b.id);
-    }
-
-    return true;
-  });
+  }, [searchQuery, hasRoomFilters, city, branchId]);
 
   return (
     <Wrap>
       <main className="container section">
         <PageTitle
-          title="Explore Our Hotels"
+          title={hasRoomFilters ? 'Available Rooms' : 'Explore Our Hotels'}
           subtitle={
-            city
-              ? `Showing stays in ${city}`
+            hasRoomFilters
+              ? 'Rooms matching your search criteria'
               : 'Discover all The Retreat destinations'
           }
         />
@@ -296,20 +280,52 @@ export function Branches() {
           <Loading />
         ) : searchError ? (
           <p className="error" role="alert">{searchError}</p>
-        ) : (
+        ) : hasRoomFilters ? (
           <>
             <p className="muted">
-              {filtered?.length ?? 0} matching hotel(s)
+              {matchingRooms.length} matching room(s) found
             </p>
 
-            <div className="branch-grid">
-              {filtered?.map(b => (
-                <BranchCard key={b.id} branch={b} />
+            <div className="room-list">
+              {matchingRooms.map(room => (
+                <article className="search-result-room" key={room.id}>
+                  <div className="search-result-branch">
+                    <MapPin size={15} />
+                    <strong>{room.branch.name}</strong>
+                    <span>{room.branch.city}</span>
+                  </div>
+
+                  <RoomCard
+                    room={room}
+                    choose={() => {
+                      const search = params.toString();
+                      navigate(
+                        `/checkout/${room.id}${search ? `?${search}` : ''}`
+                      );
+                    }}
+                  />
+                </article>
               ))}
             </div>
 
-            {filtered?.length === 0 && (
-              <Empty message="No hotels match your search. Try adjusting your filters." />
+            {matchingRooms.length === 0 && (
+              <Empty message="No available rooms match your search. Try changing your dates, guest count or filters." />
+            )}
+          </>
+        ) : (
+          <>
+            <p className="muted">
+              {branches?.length ?? 0} hotel(s) available
+            </p>
+
+            <div className="branch-grid">
+              {branches?.map(branch => (
+                <BranchCard key={branch.id} branch={branch} />
+              ))}
+            </div>
+
+            {branches?.length === 0 && (
+              <Empty message="No hotels are currently available." />
             )}
           </>
         )}
@@ -317,6 +333,8 @@ export function Branches() {
     </Wrap>
   );
 }
+
+
 
 
 // Hotel Details component displays the details of a specific hotel branch and its available rooms.
@@ -877,12 +895,14 @@ export function Login() {
       const u = signup
         ? await register(name, email, password)
         : await login(email, password);
-      toast('Successfully signed in!');
-      navigate(
-        u.role === 'admin'
-          ? '/admin'
-          : params.get('next') || '/signin-success'
-      );
+      toast('Successfully Signed In!');
+
+navigate(
+  u.role === 'admin'
+    ? '/admin'
+    : params.get('next') || '/',
+  { replace: true }
+);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -890,7 +910,7 @@ export function Login() {
 
   // Handle Google OAuth login by redirecting the user to the backend's Google authentication endpoint with a callback URL.
   const handleGoogleLogin = () => {
-    const next = params.get('next') || '/signin-success';
+   const next = params.get('next') || '/';
 
     // Construct a callback URL with the next parameter to redirect the user after successful Google authentication
     const callback = new URLSearchParams({

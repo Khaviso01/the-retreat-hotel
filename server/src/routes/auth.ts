@@ -221,7 +221,7 @@ router.get('/google', (req, res) => {
   const next =
     requestedNext.startsWith('/') && !requestedNext.startsWith('//')
       ? requestedNext
-      : '/signin-success';
+      : '/';
 
   const state = jwt.sign({ next }, JWT_SECRET, {
     expiresIn: '10m'

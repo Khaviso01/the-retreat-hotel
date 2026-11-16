@@ -101,7 +101,6 @@ export default function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/signin-success" element={<AuthSuccess />} />
           <Route path="/signed-out" element={<AuthSuccess signedOut />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/payment/callback" element={<PaymentCallback />} />
