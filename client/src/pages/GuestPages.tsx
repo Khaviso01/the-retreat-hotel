@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, ArrowLeft, CheckCircle, Heart, Bell, LogOut, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
+import { PasswordRequirements } from '../components/shared/PasswordRequirements';
+import { isStrongPassword } from '../lib/password';
 import {
   api, send, money, type Branch, type Room, type Booking, type Notice, type Review
 } from '../lib/api';
@@ -878,15 +880,28 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
   // Handle form submission for login or sign-up, including validation and navigation after successful authentication.
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
 
-    // Validate passwords only during Sign Up
+    setError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+
+    // Apply the password policy only during registration.
+    if (signup && !isStrongPassword(password)) {
+      setPasswordError(
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.'
+      );
+      return;
+    }
+
+    // Check that the password and confirmation match.
     if (signup && password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setConfirmPasswordError('Passwords do not match.');
       return;
     }
 
@@ -897,12 +912,12 @@ export function Login() {
         : await login(email, password);
       toast('Successfully Signed In!');
 
-navigate(
-  u.role === 'admin'
-    ? '/admin'
-    : params.get('next') || '/',
-  { replace: true }
-);
+      navigate(
+        u.role === 'admin'
+          ? '/admin'
+          : params.get('next') || '/',
+        { replace: true }
+      );
     } catch (e) {
       setError((e as Error).message);
     }
@@ -910,7 +925,7 @@ navigate(
 
   // Handle Google OAuth login by redirecting the user to the backend's Google authentication endpoint with a callback URL.
   const handleGoogleLogin = () => {
-   const next = params.get('next') || '/';
+    const next = params.get('next') || '/';
 
     // Construct a callback URL with the next parameter to redirect the user after successful Google authentication
     const callback = new URLSearchParams({
@@ -973,7 +988,10 @@ navigate(
                 required
                 minLength={signup ? 8 : undefined}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError('');
+                }}
                 autoComplete={signup ? 'new-password' : 'current-password'}
               />
               <button
@@ -992,45 +1010,66 @@ navigate(
             </div>
           </label>
 
-
-          {/* Confirm Password - Sign Up only */}
           {signup && (
-            <label>
-              Confirm Password
+            <>
+              <PasswordRequirements password={password} />
 
-              <div className="password-input-wrapper">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  placeholder="Confirm your password"
-                />
-
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={
-                    showConfirmPassword
-                      ? 'Hide confirm password'
-                      : 'Show confirm password'
-                  }
-                  aria-pressed={showConfirmPassword}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={20} />
-                  ) : (
-                    <Eye size={20} />
-                  )}
-                </button>
-              </div>
-            </label>
+              {passwordError && (
+                <p className="password-field-error" role="alert">
+                  {passwordError}
+                </p>
+              )}
+            </>
           )}
 
 
+          {/* Confirm Password - Sign Up only */}
+          {signup && (
+            <>
+              <label>
+                Confirm Password
+
+                <div className="password-input-wrapper">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setConfirmPasswordError('');
+                    }}
+                    autoComplete="new-password"
+                    placeholder="Confirm your password"
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={
+                      showConfirmPassword
+                        ? 'Hide confirm password'
+                        : 'Show confirm password'
+                    }
+                    aria-pressed={showConfirmPassword}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
+              </label>
+
+              {confirmPasswordError && (
+                <p className="password-field-error" role="alert">
+                  {confirmPasswordError}
+                </p>
+              )}
+            </>
+          )}
 
           {/* Only show Forgot Password on Login, not Sign Up */}
           {!signup && (

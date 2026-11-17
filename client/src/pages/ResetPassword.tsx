@@ -1,8 +1,9 @@
-
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, LockKeyhole } from 'lucide-react';
 import { send } from '../lib/api';
+import { PasswordRequirements } from '../components/shared/PasswordRequirements';
+import { isStrongPassword } from '../lib/password';
 
 // ResetPassword component allows users to reset their password using a token from the email link.
 export function ResetPassword() {
@@ -17,32 +18,38 @@ export function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [success, setSuccess] = useState(false);
 
   // Handle form submission for password reset
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
 
-    // Validate the token and password inputs
+    setError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+
+    // Validate the reset token.
     if (!token) {
       setError('Invalid password reset link.');
       return;
     }
 
-    // Validate password length and match
-    if (password.length < 8) {
-      setError('Password must contain at least 8 characters.');
+    // Validate the new password.
+    if (!isStrongPassword(password)) {
+      setPasswordError(
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.'
+      );
       return;
     }
 
-    // Validate that the password and confirm password fields match
+    // Validate password confirmation.
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setConfirmPasswordError('Passwords do not match.');
       return;
     }
 
-    // Proceed with sending the password reset request to the server
     setLoading(true);
 
     try {
@@ -52,8 +59,6 @@ export function ResetPassword() {
       });
 
       setSuccess(true);
-
-      // User can now return to the login page
     } catch (err) {
       setError(
         err instanceof Error
@@ -110,10 +115,21 @@ export function ResetPassword() {
                     minLength={8}
                     autoComplete="new-password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setPasswordError('');
+                    }}
                     placeholder="Enter new password"
                   />
                 </label>
+
+                <PasswordRequirements password={password} />
+
+                {passwordError && (
+                  <p className="password-field-error" role="alert">
+                    {passwordError}
+                  </p>
+                )}
 
                 <label>
                   Confirm Password
@@ -123,12 +139,19 @@ export function ResetPassword() {
                     minLength={8}
                     autoComplete="new-password"
                     value={confirmPassword}
-                    onChange={(e) =>
-                      setConfirmPassword(e.target.value)
-                    }
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setConfirmPasswordError('');
+                    }}
                     placeholder="Confirm new password"
                   />
                 </label>
+
+                {confirmPasswordError && (
+                  <p className="password-field-error" role="alert">
+                    {confirmPasswordError}
+                  </p>
+                )}
 
                 {error && (
                   <p className="error" role="alert">

@@ -16,6 +16,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { createHash, randomBytes } from 'node:crypto';
 import { sendPasswordResetEmail } from '../services/email.js';
+import { isStrongPassword, passwordPolicyMessage} from '../utils/password.js';
 
 import {
   CLIENT_URL,
@@ -63,12 +64,21 @@ function asyncHandler(
 const registerSchema = z.object({
   name: z.string().trim().min(2),
   email: z.string().trim().email(),
-  password: z.string().min(8)
+  password: z.string()
 });
 
 // POST /api/auth/register
 router.post('/register', asyncHandler(async (req, res) => {
   const values = registerSchema.parse(req.body);
+
+  // Enforce the password policy for new accounts.
+  if (!isStrongPassword(values.password)) {
+    res.status(400).json({
+      error: passwordPolicyMessage
+    });
+    return;
+  }
+
   const email = values.email.toLowerCase();
 
   // Check whether the account already exists in PostgreSQL.
@@ -425,13 +435,21 @@ router.post('/forgot-password', asyncHandler(async (req, res) => {
 // Validate the reset token and new password.
 const resetPasswordSchema = z.object({
   token: z.string().regex(/^[a-f0-9]{64}$/),
-  password: z.string().min(8)
+  password: z.string()
 });
 
 // POST /api/auth/reset-password
 router.post('/reset-password', asyncHandler(async (req, res) => {
   const { token: resetToken, password } =
     resetPasswordSchema.parse(req.body);
+
+  // Enforce the password policy when resetting a password.
+  if (!isStrongPassword(password)) {
+    res.status(400).json({
+      error: passwordPolicyMessage
+    });
+    return;
+  }
 
   const tokenHash = createHash('sha256')
     .update(resetToken)

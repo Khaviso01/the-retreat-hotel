@@ -5,6 +5,10 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../services/prisma.js';
 import { requireAuth, requireAdmin, type AuthRequest } from '../middleware/auth.js';
+import {
+  isStrongPassword,
+  passwordPolicyMessage
+} from '../utils/password.js';
 
 // Create an Express router for admin profile management.
 const router = Router();
@@ -29,7 +33,7 @@ const profileSchema = z.object({
 // Validation schema for password change requests using Zod.
 const passwordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8, 'Password must have at least 8 characters.')
+  newPassword: z.string().max(50),
 });
 
 // GET /api/admin/profile
@@ -136,6 +140,14 @@ router.patch('/password', asyncRoute(async (req, res) => {
 
   // Validate the incoming request body against the password schema to ensure it contains valid data for changing the user's password.
   const values = passwordSchema.parse(req.body);
+
+  // Enforce the password policy for new passwords.
+  if (!isStrongPassword(values.newPassword)) {
+    res.status(400).json({
+      error: passwordPolicyMessage
+    });
+    return;
+  }
 
   // Fetch the authenticated user's current password hash from the database to verify the current password before allowing a password change.
   const user = await prisma.user.findUnique({

@@ -10,6 +10,10 @@ import {
   requireAuth,
   type AuthRequest,
 } from '../middleware/auth.js';
+import {
+  isStrongPassword,
+  passwordPolicyMessage
+} from '../utils/password.js';
 
 // Initialize the Express router for guest profile management.
 const router = Router();
@@ -41,7 +45,7 @@ const updateProfileSchema = z.object({
 // Validate password changes.
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8).max(128),
+  newPassword: z.string().max(50),
 }).strict();
 
 // PATCH /api/guest/profile
@@ -96,7 +100,15 @@ router.patch(
 
     if (!parsed.success) {
       res.status(400).json({
-        error: 'Enter your current password and a new password of 8–128 characters.',
+        error: 'Enter your current password and a new password of 8–50 characters.',
+      });
+      return;
+    }
+
+    // Enforce the password policy for new passwords.
+    if (!isStrongPassword(parsed.data.newPassword)) {
+      res.status(400).json({
+        error: passwordPolicyMessage,
       });
       return;
     }

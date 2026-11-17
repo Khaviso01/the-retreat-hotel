@@ -1,7 +1,6 @@
 /* The Retreat design system: dark forest green, cream backgrounds and clean cards. */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
 
-
 :root {
   /* Fonts */
   --font-primary: 'DM Sans', Arial, sans-serif;
@@ -276,6 +275,99 @@ p {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Password requirements and strength indicator */
+.password-requirements {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.password-strength {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+}
+
+.password-strength strong {
+  color: var(--green);
+  font-weight: var(--weight-semibold);
+}
+
+.password-strength-bars {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.password-strength-bars span {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  transition: background var(--transition-fast);
+}
+
+.password-strength-bars span.filled {
+  background: var(--color-success);
+}
+
+.password-requirements ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.password-requirements li svg {
+  flex-shrink: 0;
+  color: var(--color-danger);
+}
+
+.password-requirements li.passed {
+  color: var(--color-success);
+}
+
+.password-requirements li.passed svg {
+  color: var(--color-success);
+}
+
+.password-field-error {
+  display: block;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 6px 0 0;
+}
+
+/* Mobile layout */
+@media (max-width: 480px) {
+  .password-requirements {
+    padding: 12px;
+  }
+
+  .password-requirements ul {
+    grid-template-columns: 1fr;
+  }
 }
 
 .auth-card form {

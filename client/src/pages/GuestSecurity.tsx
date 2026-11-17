@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { send } from '../lib/api';
 import { useApp } from '../context/AppContext';
+import { PasswordRequirements } from '../components/shared/PasswordRequirements';
+import { isStrongPassword } from '../lib/password';
 
 // GuestSecurity component allows users to change their password and manage security settings.
 export default function GuestSecurity() {
@@ -20,32 +22,46 @@ export default function GuestSecurity() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [error, setError] = useState('');
 
   // Handle form submission for changing the password
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
     setError('');
+    setCurrentPasswordError('');
+    setNewPasswordError('');
+    setConfirmPasswordError('');
 
-    // Validate the current password, new password, and confirm password inputs
-    if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters.');
+    // Validate the current password.
+    if (!currentPassword.trim()) {
+      setCurrentPasswordError('Please enter your current password.');
       return;
     }
 
-    // Validate that the new password and confirm password fields match
+    // Validate the new password.
+    if (!isStrongPassword(newPassword)) {
+      setNewPasswordError(
+        'New password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.'
+      );
+      return;
+    }
+
+    // Validate password confirmation.
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match.');
+      setConfirmPasswordError('New passwords do not match.');
       return;
     }
 
-    // Validate that the new password is different from the current password
+    // Ensure the new password differs from the current password.
     if (currentPassword === newPassword) {
-      setError('Choose a different password.');
+      setNewPasswordError('Choose a different password from your current one.');
       return;
     }
 
-    // Prevent multiple submissions while saving
     if (saving) return;
 
     try {
@@ -57,18 +73,24 @@ export default function GuestSecurity() {
         { currentPassword, newPassword }
       );
 
-      // Clear the form fields after a successful password change
+      // Clear the form after a successful password change.
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
 
       toast('Password updated successfully.');
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
-          : 'Unable to change your password.'
-      );
+          : 'Unable to change your password.';
+
+      // Show incorrect-current-password errors beneath that field.
+      if (/current password|old password|incorrect password/i.test(message)) {
+        setCurrentPasswordError(message);
+      } else {
+        setError(message);
+      }
     } finally {
       setSaving(false);
     }
@@ -102,10 +124,18 @@ export default function GuestSecurity() {
           <input
             type={showPasswords ? 'text' : 'password'}
             value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
+            onChange={(e) => {
+              setCurrentPassword(e.target.value);
+              setCurrentPasswordError('');
+            }}
             autoComplete="current-password"
             required
           />
+          {currentPasswordError && (
+            <span className="password-field-error" role="alert">
+              {currentPasswordError}
+            </span>
+          )}
         </label>
 
         <label className="guest-account-field">
@@ -113,23 +143,42 @@ export default function GuestSecurity() {
           <input
             type={showPasswords ? 'text' : 'password'}
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            onChange={(e) => {
+              setNewPassword(e.target.value);
+              setNewPasswordError('');
+            }}
             autoComplete="new-password"
             minLength={8}
             required
           />
         </label>
 
+        <PasswordRequirements password={newPassword} />
+
+        {newPasswordError && (
+          <p className="password-field-error" role="alert">
+            {newPasswordError}
+          </p>
+        )}
+
         <label className="guest-account-field">
           Confirm New Password
           <input
             type={showPasswords ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setConfirmPasswordError('');
+            }}
             autoComplete="new-password"
             minLength={8}
             required
           />
+          {confirmPasswordError && (
+            <span className="password-field-error" role="alert">
+              {confirmPasswordError}
+            </span>
+          )}
         </label>
 
         <button
@@ -144,7 +193,9 @@ export default function GuestSecurity() {
 
         <div className="guest-account-security-tip">
           <ShieldCheck size={19} />
-          <p>Use a unique password with at least 8 characters.</p>
+          <p>
+            Use a unique password that meets all the security requirements above.
+          </p>
         </div>
 
         {error && (

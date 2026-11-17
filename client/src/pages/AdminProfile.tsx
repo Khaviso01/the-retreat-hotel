@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   UserRound,
@@ -14,6 +13,8 @@ import {
 import { api, send } from '../lib/api';
 import { useApp } from '../context/AppContext';
 import { AdminSidebar, Loading } from '../components/shared/Shared';
+import { PasswordRequirements } from '../components/shared/PasswordRequirements';
+import { isStrongPassword } from '../lib/password';
 
 import '../styles.css';
 
@@ -47,6 +48,10 @@ export default function AdminProfile() {
     newPassword: '',
     confirmPassword: ''
   });
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [passwordFormError, setPasswordFormError] = useState('');
 
   // Load the currently signed-in administrator.
   useEffect(() => {
@@ -68,7 +73,7 @@ export default function AdminProfile() {
         if (active) setLoading(false);
       });
 
-      // Cleanup function to prevent state updates if the component is unmounted before the API call completes.
+    // Cleanup function to prevent state updates if the component is unmounted before the API call completes.
     return () => {
       active = false;
     };
@@ -111,19 +116,39 @@ export default function AdminProfile() {
   const handleChangePassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validate that the new password and confirm password fields match.
+    setCurrentPasswordError('');
+    setNewPasswordError('');
+    setConfirmPasswordError('');
+    setPasswordFormError('');
+
+    // Validate the current password.
+    if (!passwords.currentPassword.trim()) {
+      setCurrentPasswordError('Please enter your current password.');
+      return;
+    }
+
+    // Validate the new password.
+    if (!isStrongPassword(passwords.newPassword)) {
+      setNewPasswordError(
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.'
+      );
+      return;
+    }
+
+    // Validate password confirmation.
     if (passwords.newPassword !== passwords.confirmPassword) {
-      toast('New passwords do not match.');
+      setConfirmPasswordError('New passwords do not match.');
       return;
     }
 
-    // Validate that the new password meets the minimum length requirement.
-    if (passwords.newPassword.length < 8) {
-      toast('Password must contain at least 8 characters.');
+    // Ensure the new password differs from the current password.
+    if (passwords.currentPassword === passwords.newPassword) {
+      setNewPasswordError('Choose a different password from your current one.');
       return;
     }
 
-    // Prevent multiple submissions while saving.
+    if (saving) return;
+
     setSaving(true);
 
     try {
@@ -136,16 +161,27 @@ export default function AdminProfile() {
         }
       );
 
-      // Clear the password fields and hide the password form after a successful password change.
       toast('Password changed successfully.');
+
       setPasswords({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
+
       setShowPasswordForm(false);
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Unable to change password.');
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Unable to change password.';
+
+      // Display incorrect-current-password errors beneath that field.
+      if (/current password|old password|incorrect password/i.test(message)) {
+        setCurrentPasswordError(message);
+      } else {
+        setPasswordFormError(message);
+      }
     } finally {
       setSaving(false);
     }
@@ -260,7 +296,7 @@ export default function AdminProfile() {
                   <div className="admin-profile-security-row">
                     <div>
                       <strong>Password</strong>
-                      <p>Update your password regularly to protect your account.</p>
+                      <p>Use a strong, unique password to protect your administrator account.</p>
                     </div>
 
                     <button
@@ -273,6 +309,7 @@ export default function AdminProfile() {
                   </div>
                 ) : (
                   <form onSubmit={handleChangePassword}>
+
                     <div className="admin-profile-password-fields">
                       {([
                         ['currentPassword', 'Current Password'],
@@ -281,14 +318,29 @@ export default function AdminProfile() {
                       ] as const).map(([key, label]) => (
                         <label key={key}>
                           {label}
+
                           <div className="admin-profile-password-input">
                             <input
                               type={showPasswords ? 'text' : 'password'}
                               value={passwords[key]}
-                              onChange={e => setPasswords(prev => ({
-                                ...prev,
-                                [key]: e.target.value
-                              }))}
+                              onChange={e => {
+                                setPasswords(prev => ({
+                                  ...prev,
+                                  [key]: e.target.value
+                                }));
+
+                                if (key === 'currentPassword') {
+                                  setCurrentPasswordError('');
+                                }
+
+                                if (key === 'newPassword') {
+                                  setNewPasswordError('');
+                                }
+
+                                if (key === 'confirmPassword') {
+                                  setConfirmPasswordError('');
+                                }
+                              }}
                               minLength={key === 'currentPassword' ? undefined : 8}
                               autoComplete={
                                 key === 'currentPassword'
@@ -298,9 +350,39 @@ export default function AdminProfile() {
                               required
                             />
                           </div>
+
+                          {key === 'newPassword' && (
+                            <>
+                              <PasswordRequirements password={passwords.newPassword} />
+
+                              {newPasswordError && (
+                                <span className="password-field-error" role="alert">
+                                  {newPasswordError}
+                                </span>
+                              )}
+                            </>
+                          )}
+
+                          {key === 'currentPassword' && currentPasswordError && (
+                            <span className="password-field-error" role="alert">
+                              {currentPasswordError}
+                            </span>
+                          )}
+
+                          {key === 'confirmPassword' && confirmPasswordError && (
+                            <span className="password-field-error" role="alert">
+                              {confirmPasswordError}
+                            </span>
+                          )}
                         </label>
                       ))}
                     </div>
+                    {passwordFormError && (
+                      <p className="password-field-error" role="alert">
+                        {passwordFormError}
+                      </p>
+                    )}
+
 
                     <button
                       type="button"
@@ -315,7 +397,21 @@ export default function AdminProfile() {
                       <button
                         type="button"
                         className="admin-profile-secondary"
-                        onClick={() => setShowPasswordForm(false)}
+                        onClick={() => {
+                          setShowPasswordForm(false);
+                          setShowPasswords(false);
+
+                          setPasswords({
+                            currentPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                          });
+
+                          setCurrentPasswordError('');
+                          setNewPasswordError('');
+                          setConfirmPasswordError('');
+                          setPasswordFormError('');
+                        }}
                       >
                         Cancel
                       </button>
