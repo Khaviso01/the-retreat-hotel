@@ -52,7 +52,7 @@ The Retreat Hotels & Suites is a responsive hotel reservation platform built wit
 **Password & Security** (`/profile/security`)
 
 - Require the current password before changing credentials.
-- Validate a new password of 8–128 characters on the server.
+- Validate a new password of 8–50 characters on the server.
 - Confirm the new password in the frontend form.
 - Prevent reuse of the existing password.
 - Hash the replacement password with bcrypt before saving it.
